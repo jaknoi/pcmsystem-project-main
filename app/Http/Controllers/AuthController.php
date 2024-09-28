@@ -20,6 +20,11 @@ use App\Models\Budget;
 use Barryvdh\DomPDF\Facade\Pdf;
 class AuthController extends Controller
 {
+    public function welcome()
+    {
+        return view('welcome');
+    }
+
     public function showLogin()
     {
         return view('login');

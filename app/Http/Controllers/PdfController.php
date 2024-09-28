@@ -34,19 +34,35 @@ class PdfController extends Controller
         return response()->download($pdfPath)->deleteFileAfterSend(true);
     }
 
-    // ฟังก์ชันแปลง Word เป็น PDF โดยใช้ TCPDF
-    private function convertWordToPdf($wordPath)
-    {
-        // โหลดไฟล์ Word
-        $phpWord = IOFactory::load($wordPath);
+   // ฟังก์ชันแปลง Word เป็น PDF โดยใช้ Dompdf
+private function convertWordToPdf($wordPath)
+{
+    // โหลดไฟล์ Word ด้วย PhpWord
+    $phpWord = IOFactory::load($wordPath);
 
-        // สร้างไฟล์ PDF ด้วย TCPDF
-        $pdfWriter = IOFactory::createWriter($phpWord, 'PDF');
-        $pdfPath = public_path('pcm-filled.pdf');
-        $pdfWriter->save($pdfPath);
+    // แปลงเป็น HTML
+    $htmlWriter = IOFactory::createWriter($phpWord, 'HTML');
+    ob_start();
+    $htmlWriter->save('php://output');
+    $htmlContent = ob_get_clean();
 
-        return $pdfPath;
-    }
+    // สร้าง PDF ด้วย TCPDF
+    $pdf = new TCPDF();
+    $pdf->AddPage();
+
+    // ตั้งค่าฟอนต์ (ถ้าต้องการ)
+    $pdf->SetFont('thsarabunit', '', 16);
+
+    // เขียน HTML ลงใน PDF
+    $pdf->writeHTML($htmlContent, true, false, true, false, '');
+
+    // บันทึก PDF
+    $pdfPath = public_path('pcm-filled.pdf');
+    $pdf->Output($pdfPath, 'F');
+
+    return $pdfPath;
+}
+
 
     // ฟังก์ชันเติมข้อมูลลงในเทมเพลตเอกสาร Word
     private function fillWordTemplate($templatePath, $data)
@@ -82,7 +98,10 @@ class PdfController extends Controller
                 $templateProcessor->setValue("product_name#" . ($index + 1), $product['product_name']);
                 $templateProcessor->setValue("quantity#" . ($index + 1), $product['quantity']);
                 $templateProcessor->setValue("unit#" . ($index + 1), $product['unit']);
-                $templateProcessor->setValue("product_price#" . ($index + 1), $product['product_price']);
+                
+                // จัดรูปแบบราคาด้วย number_format
+                $formatted_price = number_format($product['product_price'], 2); // 2 คือจำนวนตำแหน่งทศนิยม
+                $templateProcessor->setValue("product_price#" . ($index + 1), $formatted_price);
             }
             
             // เติมข้อมูลสินค้าที่อยู่ด้านนอกตาราง (แค่เลขหน้าและชื่อสินค้า)

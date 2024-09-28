@@ -7,6 +7,7 @@ use App\Http\Controllers\BudgetController;
 use App\Models\Seller;
 use Illuminate\Http\Request;
 
+Route::get('/', [AuthController::class, 'welcome'])->name('welcome');
 // เส้นทางสำหรับการเข้าสู่ระบบ
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('postlogin');

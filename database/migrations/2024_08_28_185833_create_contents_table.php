@@ -39,7 +39,7 @@ return new class extends Migration
             $table->id(); // Primary key, auto-incrementing
             $table->string('seller_name');
             $table->string('address');
-            $table->integer('taxpayer_number');
+            $table->string('taxpayer_number', 13);
             $table->string('reference_documents');
             $table->foreignId('info_id')->constrained('info')->onDelete('cascade'); // Foreign key
             $table->timestamps();
