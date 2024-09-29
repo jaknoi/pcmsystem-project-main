@@ -6,11 +6,13 @@
             <div class="col-md-4">
                 <div class="card">
                     <h3 class="card-header text-center">เข้าสู่ระบบ</h3>
-                    @if(\Session::has('message'))
-                        <div class="alert alert-info">
-                            {{ \Session::get('message') }}
-                        </div>
-                    @endif
+                    @if (\Session::has('message'))
+    <div class="alert alert-info">
+        {{ \Session::get('message') }}
+    </div>
+@endif
+
+
                     <div class="card-body">
                         <form method="POST" action="{{ route('postlogin') }}">
                             @csrf
@@ -49,6 +51,9 @@
 
 <!-- ลิงก์ไปยัง Font Awesome -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<!-- SweetAlert2 CSS และ JS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
 
 <script>
     const passwordField = document.getElementById("password");
@@ -76,5 +81,34 @@
             togglePassword.classList.add("fa-eye");
         }
     });
+
+
+
+    document.addEventListener('DOMContentLoaded', function() {
+    // ตรวจสอบว่ามี session 'login_success' หรือไม่
+    @if(session('login_success'))
+        Swal.fire({
+            icon: 'success',
+            title: 'ล็อกอินสำเร็จ!',
+            text: '{{ session('login_success') }}',
+            timer: 3000, // เวลาแสดงผล
+            showConfirmButton: false // ไม่แสดงปุ่มยืนยัน
+        });
+    @endif
+
+    // ตรวจสอบ session สำหรับการล็อกเอาต์
+    @if(session('logout'))
+        Swal.fire({
+            icon: 'info',
+            title: 'ล็อกเอาต์สำเร็จ!',
+            text: 'คุณได้ออกจากระบบเรียบร้อยแล้ว!',
+            timer: 3000, // เวลาแสดงผล
+            showConfirmButton: false // ไม่แสดงปุ่มยืนยัน
+        });
+    @endif
+});
+
+
+
 </script>
 @endsection

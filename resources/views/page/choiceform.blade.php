@@ -14,31 +14,35 @@
             /* ปรับขนาดให้พอดีกับการย่อขนาด */
         }
 
+        /* การ์ด */
         .custom-card {
             width: 50rem;
-            /* กำหนดความกว้างของการ์ด */
             height: 10rem;
-            /* กำหนดความสูงของการ์ด */
             overflow: hidden;
-            /* ซ่อนส่วนที่เกินออกไปจากกรอบการ์ด */
             display: flex;
-            /* ใช้ Flexbox เพื่อให้รูปภาพเต็มกรอบ */
             justify-content: center;
-            /* จัดให้อยู่กลางการ์ด */
             align-items: center;
-            /* จัดให้อยู่กลางการ์ด */
             border: 1px solid black;
-            /* เพิ่มขอบสีดำ */
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
 
+        /* เอฟเฟกต์ hover สำหรับการ์ด */
+        .custom-card:hover {
+            transform: scale(1.04);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        /* รูปภาพภายในการ์ด */
         .custom-card-img {
             width: 100%;
-            /* ทำให้รูปภาพเต็มความกว้างของการ์ด */
             height: 100%;
-            /* ทำให้รูปภาพเต็มความสูงของการ์ด */
             object-fit: cover;
-            /* ทำให้รูปภาพเต็มกรอบโดยไม่ทำให้เบี้ยว */
+            transition: transform 0.3s ease;
         }
+
+       
     </style>
 
     <div class="container-fluid vh-100 d-flex justify-content-center align-items-center">
@@ -57,6 +61,7 @@
                 <div class="card custom-card">
                     <a href="{{ route('page.createk') }}" class="btn-img">
                     <img src="{{ asset('images/choiceform2.png') }}" class="card-img-top custom-card-img" alt="Image 2">
+                </a>
                 </div>
             </div>
         </div>

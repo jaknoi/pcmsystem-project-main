@@ -18,6 +18,9 @@ use Carbon\Carbon;
 use App\Models\History;
 use App\Models\Budget;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Log;
+
+
 class AuthController extends Controller
 {
     public function welcome()
@@ -39,20 +42,27 @@ class AuthController extends Controller
     
         $credentials = $request->only('email', 'password');
         if (Auth::attempt($credentials)) {
-            // บันทึกกิจกรรมการล็อกอิน
+            // Save login activity
             History::create([
                 'user_id' => Auth::id(),
                 'activity' => 'Login',
                 'details' => 'ผู้ใช้เข้าสู่ระบบ',
             ]);
     
-            return redirect()->intended('page')
-                        ->with('message', 'Signed in!');
-        }
+            // ตั้งค่า session สำหรับการล็อกอินสำเร็จ
+            session(['login_success' => 'ล็อกอินสำเร็จ!']); 
+            Log::info('Login session: ', ['success' => session('login_success')]);
     
-        return redirect('/login')->with('message', 'Login details are not valid!');
-
+            return redirect()->intended('page')->with('login_success', 'ล็อกอินสำเร็จ!');
+        } else {
+            return redirect('/login')->with('message', 'ข้อมูลเข้าสู่ระบบไม่ถูกต้อง');
+        }
     }
+    
+
+
+
+    
     
 
     public function signup()
@@ -103,7 +113,7 @@ class AuthController extends Controller
     Session::flush();
     Auth::logout();
 
-    return redirect('login');
+    return redirect('login')->with('logout', 'คุณได้ออกจากระบบเรียบร้อยแล้ว!');
 }
 
 public function list(Request $request)
@@ -568,20 +578,6 @@ public function addBudget(Request $request)
     // ส่งกลับไปที่หน้าเดิมพร้อมกับข้อความสำเร็จ
     return redirect()->route('budget.add')->with('success', "งบประมาณถูกเพิ่มเรียบร้อยแล้ว งบประมาณทั้งหมด: {$formattedTotalAmount} บาท คงเหลือ: {$formattedRemainingAmount} บาท");
 }
-
-public function summarys(Request $request)
-{
-    // ตัวอย่างข้อมูล
-    $monthlySummaries = [
-        ['id' => 1, 'title' => 'สรุปการจัดซื้อจัดจ้างประจำเดือนมกราคม 2567'],
-        ['id' => 2, 'title' => 'สรุปการจัดซื้อจัดจ้างประจำเดือนกุมภาพันธ์ 2567'],
-        ['id' => 3, 'title' => 'สรุปการจัดซื้อจัดจ้างประจำเดือนมีนาคม 2567'],
-    ];
-
-    return view('summary', compact('monthlySummaries'));
-}
-
-
 
 
 }

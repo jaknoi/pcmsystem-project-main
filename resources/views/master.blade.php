@@ -165,32 +165,7 @@
         @yield('info')
     </div>
 
-    <!-- Modal สำหรับเพิ่มงบประมาณ -->
-    @auth
-        <div class="modal fade" id="addBudgetModal" tabindex="-1" aria-labelledby="addBudgetModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="addBudgetModalLabel">เพิ่มงบประมาณ</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <form action="{{ route('budget.add') }}" method="POST">
-                        @csrf
-                        <div class="modal-body">
-                            <div class="mb-3">
-                                <label for="budget_amount" class="form-label">จำนวนงบประมาณ</label>
-                                <input type="number" class="form-control" id="budget_amount" name="budget_amount" required>
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button>
-                            <button type="submit" class="btn btn-primary">บันทึก</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    @endauth
+   
 
     <footer>
         <p>&copy; 2024 www.tsu.ac.th All rights reserved</p>
@@ -198,13 +173,6 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-7C1ie8Ed3KjzBBTYjcFad4KN1FwZhG9LFf4+N41yG+HoTC5lZ92R9+FXl5Do8hPM" crossorigin="anonymous">
-    </script>
-    <!-- สคริปต์แสดง popup -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            var myModal = new bootstrap.Modal(document.getElementById('addBudgetModal'));
-            myModal.show();  // แสดงโมดัลเมื่อหน้าโหลด
-        });
     </script>
     
 </body>

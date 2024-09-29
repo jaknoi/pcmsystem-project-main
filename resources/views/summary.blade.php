@@ -1,63 +1,72 @@
 @extends('master')
 
-@section('title', 'Summary')
-
 @section('info')
 <div class="container">
-    <div class="card mb-4">
-        <div class="card-header bg-dark text-white">
-            <h5>ค้นหารายการจัดซื้อจัดจ้าง</h5>
-        </div>
-        <div class="card-body">
-            <form method="GET" action="{{ route('summary') }}">
-                <div class="row mb-3">
-                    <div class="col-md-3">
-                        <label for="year" class="form-label">ปี พ.ศ.</label>
-                        <select class="form-select" id="year" name="year">
-                            @for ($i = 2560; $i <= now()->year + 543; $i++)
-                                <option value="{{ $i }}" {{ request('year') == $i ? 'selected' : '' }}>{{ $i }}</option>
-                            @endfor
-                        </select>
-                    </div>
-                    <div class="col-md-2">
-                        <button type="submit" class="btn btn-primary mt-4">ค้นหา</button>
-                    </div>
-                </div>
-            </form>
-        </div>
-    </div>
+    <h2>ข้อมูลรายเดือน</h2>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>เหตุผล</th>
+                <th>ประเภท</th>
+                <th>ผู้ขาย</th>
+                <th>วงเงินรวม</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach($monthlyData as $info) <!-- ใช้ $monthlyData ตรงๆ -->
+                <tr>
+                    <td>{{ $info->id }}</td> <!-- เพิ่ม ID -->
+                    <td>{{ $info->reason_description }}</td>
+                    <td>{{ $info->methode_name }}</td>
+                    <td>
+                        @foreach($info->sellers as $seller)
+                            {{ $seller->seller_name }}<br>
+                        @endforeach
+                    </td>
+                    <td>{{ number_format($info->total_price, 2) }}</td> <!-- แสดงยอดรวม -->
+                </tr>
+            @endforeach
+        </tbody>
+    </table>
 
-    <!-- Card สำหรับตารางข้อมูล -->
-    <div class="card">
-        <div class="card-header bg-primary text-white">
-            <h5>รายการจัดซื้อจัดจ้าง</h5>
-        </div>
-
-        <div class="card-body">
-            <table class="table table-bordered">
-                <thead class="table-light">
-                    <tr>
-                        <th>สรุปรายการจัดซื้อจัดจ้าง</th>
-                        <th>ดาวน์โหลดไฟล์ PDF</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach ($monthlySummaries as $summary)
-                        <tr>
-                            <td>{{ $summary['title'] }}</td>
-                            <td>
-                                <a href="#" class="btn btn-outline-danger">
-                                    <i class="fas fa-file-pdf"></i> PDF
-                                </a>
-                            </td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
-            <div class="mt-3">
-                <a href="{{ url('/page') }}" role="button" class="btn btn-danger">Back</a>
-            </div>
-        </div>
+    <h2>ข้อมูลรายไตรมาส</h2>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID</th> <!-- เพิ่ม ID -->
+                <th>เลขประจำตัวผู้เสียภาษี</th>
+                <th>ผู้ขาย</th>
+                <th>เหตุผล</th>
+                <th>วงเงินรวม</th>
+                <th>วันที่</th>
+                <th>เอกสารอ้างอิง</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach($quarterlyData as $info) <!-- ใช้ $quarterlyData ตรงๆ -->
+                <tr>
+                    <td>{{ $info->id }}</td> <!-- เพิ่ม ID -->
+                    <td>@foreach($info->sellers as $seller)
+                            {{ $seller->taxpayer_number }}<br>
+                        @endforeach</td>
+                    <td>
+                        @foreach($info->sellers as $seller)
+                            {{ $seller->seller_name }}<br>
+                        @endforeach
+                    </td>
+                    <td>{{ $info->reason_description }}</td>
+                    <td>{{ number_format($info->total_price, 2) }}</td>
+                    <td>{{ \Carbon\Carbon::parse($info->date)->format('d/m/Y') }}</td> <!-- จัดรูปแบบวันที่ -->
+                    <td>@foreach($info->sellers as $seller)
+                            {{ $seller->reference_documents }}<br>
+                        @endforeach</td>
+                </tr>
+            @endforeach
+        </tbody>
+    </table>
+    <div class="mt-3">
+        <a href="{{ url('/page') }}" role="button" class="btn btn-danger">Back</a>
     </div>
 </div>
 @endsection

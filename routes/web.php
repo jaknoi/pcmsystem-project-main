@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\PdfController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\SummaryController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\BudgetController;
 use App\Models\Seller;
@@ -53,5 +54,5 @@ Route::post('/budget/add', [AuthController::class, 'addBudget'])->name('budget.s
 
 Route::get('/generate-word/{id}', [PdfController::class, 'generateWord'])->name('generate-word');
 
-Route::get('/summary', [AuthController::class, 'summarys'])->name('summary');
+Route::get('/summary', [SummaryController::class, 'showSummary']);
 

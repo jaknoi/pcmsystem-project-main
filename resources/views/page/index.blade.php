@@ -21,6 +21,10 @@
             align-items: center;
             justify-content: center;
             border-radius: 15px;
+            transition: transform 0.3s ease; /* เพิ่มการเปลี่ยนแปลงการย่อ-ขยายขนาด */
+        }
+        .btn-img:hover {
+            transform: scale(1.1); /* ขยายขนาดเมื่อ hover */
         }
 
         .btn-img img {

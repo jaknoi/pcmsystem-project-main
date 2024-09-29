@@ -21,7 +21,7 @@
             font-size: 12px;
         }
     </style>
-
+                   
     <div class="card">
         <div class="card-body">
             <h2 style="color: rgb(255, 0, 0); text-align: center;">เอกสารจัดซื้อจัดจ้าง</h2>
@@ -752,4 +752,5 @@
         </div>
     </div>
     </div>
+   
 @endsection
