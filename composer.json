@@ -7,7 +7,9 @@
     "require": {
         "php": "^8.2",
         "barryvdh/laravel-dompdf": "^3.0",
+        "cloudconvert/cloudconvert-php": "^3.4",
         "dompdf/dompdf": "^3.0",
+        "ilovepdf/ilovepdf-php": "^1.2",
         "laravel/framework": "^11.9",
         "laravel/tinker": "^2.9",
         "mpdf/mpdf": "8.2",

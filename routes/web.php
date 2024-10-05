@@ -5,12 +5,18 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\SummaryController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\BudgetController;
+use App\Http\Controllers\BidderSellerController;
 use App\Models\Seller;
 use Illuminate\Http\Request;
 
-Route::get('/', [AuthController::class, 'welcome'])->name('welcome');
 // เส้นทางสำหรับการเข้าสู่ระบบ
-Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
+Route::get('/login', function () {
+    if (auth()->check()) {
+        return redirect('/page'); // ถ้าล็อกอินแล้ว ไปที่หน้า /page
+    }
+    return view('login'); // ถ้ายังไม่ได้ล็อกอิน ให้ไปที่หน้า login
+})->name('login');
+
 Route::post('/login', [AuthController::class, 'login'])->name('postlogin');
 
 // เส้นทางสำหรับการลงทะเบียน
@@ -19,6 +25,11 @@ Route::post('/signup', [AuthController::class, 'signupsave'])->name('postsignup'
 
 // เส้นทางสำหรับการออกจากระบบ
 Route::post('/logout', [AuthController::class, 'signOut'])->name('logout');
+
+// เปลี่ยนเส้นทางไปยัง /login เมื่อเข้าหน้าแรก
+Route::get('/', function () {
+    return redirect('/login');
+});
 
 // เส้นทางสำหรับการจัดการข้อมูล
 Route::get('/page', [AuthController::class, 'index'])->middleware('auth');
@@ -55,4 +66,20 @@ Route::post('/budget/add', [AuthController::class, 'addBudget'])->name('budget.s
 Route::get('/generate-word/{id}', [PdfController::class, 'generateWord'])->name('generate-word');
 
 Route::get('/summary', [SummaryController::class, 'showSummary']);
+Route::post('/summary/filter', [SummaryController::class, 'filterSummary'])->name('summary.filter');
+Route::get('/summary/filter', [SummaryController::class, 'filterSummary'])->name('filter.summary');
 
+Route::get('/download/monthly-pdf', [PdfController::class, 'downloadMonthlyPdf'])->name('generate.monthly.pdf');
+Route::get('/generate-quarterly-pdf/{year}/{quarter}', [PdfController::class, 'downloadQuarterlyPdf'])->name('generate.quarterly.pdf');
+
+Route::get('/bidders-sellers', [BidderSellerController::class, 'index'])->name('bidders_sellers.index');
+Route::post('/bidders-sellers/storeSeller/{id?}', [BidderSellerController::class, 'storeSeller'])->name('bidders_sellers.storeSeller');
+Route::post('/bidders-sellers/storeBidder/{id?}', [BidderSellerController::class, 'storeBidder'])->name('bidders_sellers.storeBidder');
+
+Route::get('/bidders-sellers/editSeller/{id}', [BidderSellerController::class, 'editSeller'])->name('bidders_sellers.editSeller');
+Route::put('/bidders-sellers/updateSeller/{id}', [BidderSellerController::class, 'updateSeller'])->name('bidders_sellers.updateSeller');
+Route::delete('/bidders-sellers/deleteSeller/{id}', [BidderSellerController::class, 'deleteSeller'])->name('bidders_sellers.deleteSeller');
+
+Route::get('/bidders-sellers/editBidder/{id}', [BidderSellerController::class, 'editBidder'])->name('bidders_sellers.editBidder');
+Route::put('/bidders-sellers/updateBidder/{id}', [BidderSellerController::class, 'updateBidder'])->name('bidders_sellers.updateBidder');
+Route::delete('/bidders-sellers/deleteBidder/{id}', [BidderSellerController::class, 'deleteBidder'])->name('bidders_sellers.deleteBidder');

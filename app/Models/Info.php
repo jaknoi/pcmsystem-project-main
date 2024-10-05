@@ -4,6 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Product;
+use App\Models\Seller;
+use App\Models\CommitteeMember;
+use App\Models\Bidder;
+use App\Models\Inspector;
+use App\Models\More;
 
 class Info extends Model
 {
@@ -44,103 +50,17 @@ class Info extends Model
     {
         return $this->hasMany(Inspector::class, 'info_id', 'id');
     }
-}
-
-class Product extends Model
-{
-    use HasFactory;
-
-    protected $table = 'product';
-
-    protected $fillable = [
-        'product_type',
-        'product_name',
-        'quantity',
-        'unit',
-        'product_price',
-        'info_id',
-    ];
-
-    public function info()
+    public function mores()
     {
-        return $this->belongsTo(Info::class, 'info_id', 'id');
+        return $this->hasMany(More::class, 'info_id', 'id');
     }
 }
 
-class Seller extends Model
-{
-    use HasFactory;
 
-    protected $table = 'seller';
 
-    protected $fillable = [
-        'seller_name',
-        'address',
-        'taxpayer_number',
-        'reference_documents',
-        'info_id',
-    ];
 
-    public function info()
-    {
-        return $this->belongsTo(Info::class, 'info_id', 'id');
-    }
-}
 
-class CommitteeMember extends Model
-{
-    use HasFactory;
 
-    protected $table = 'committee_member';
 
-    protected $fillable = [
-        'member_name',
-        'member_position',
-        'info_id',
-    ];
-
-    public function info()
-    {
-        return $this->belongsTo(Info::class, 'info_id', 'id');
-    }
-}
-
-class Bidder extends Model
-{
-    use HasFactory;
-
-    protected $table = 'bidder';
-
-    protected $fillable = [
-        'bidder_name',
-        'bidder_position',
-        'info_id',
-    ];
-
-    public function info()
-    {
-        return $this->belongsTo(Info::class, 'info_id', 'id');
-    }
-}
-
-class Inspector extends Model
-{
-    use HasFactory;
-
-    protected $table = 'inspector';
-
-    protected $fillable = [
-        'inspector_name',
-        'inspector_position',
-        'info_id',
-    ];
-
-    public function info()
-    {
-        return $this->belongsTo(Info::class, 'info_id', 'id');
-    }
-
-    
-}
 
 

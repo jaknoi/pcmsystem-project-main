@@ -3,11 +3,8 @@
 
 @section('info')
     <style>
-        body{
-            transform: scale(0.8); /* ลดขนาดลง 20% */
-            transform-origin: top left; /* จุดศูนย์กลางการย่อขนาดอยู่ที่มุมซ้ายบน */
-            width: 125%; /* ปรับขนาดให้พอดีกับการย่อขนาด */
-            height: 125%; /* ปรับขนาดให้พอดีกับการย่อขนาด */
+        body {
+            /* You can add any body styles here if needed */
         }
         .btn-img {
             width: 80%;
@@ -15,18 +12,17 @@
             padding-bottom: 80%;
             position: relative;
             overflow: hidden;
-            border: 1px ;
+            border: 1px;
             margin: 0.5rem;
             display: flex;
             align-items: center;
             justify-content: center;
             border-radius: 15px;
-            transition: transform 0.3s ease; /* เพิ่มการเปลี่ยนแปลงการย่อ-ขยายขนาด */
+            transition: transform 0.3s ease; /* Zoom effect */
         }
         .btn-img:hover {
-            transform: scale(1.1); /* ขยายขนาดเมื่อ hover */
+            transform: scale(1.1); /* Zoom in effect on hover */
         }
-
         .btn-img img {
             position: absolute;
             top: 0;
@@ -35,13 +31,14 @@
             height: 100%;
             object-fit: cover;
         }
-
+        .no-hover {
+            pointer-events: none; /* Disable hover effect */
+        }
         @media (max-width: 576px) {
             .btn-img {
                 padding-bottom: 100%;
             }
         }
-        
         .alert {
             margin: 1rem;
         }
@@ -55,24 +52,24 @@
                     </a>
                 </div>
                 <div class="col-6 col-md-3 mb-3">
-                    <a class="btn-img">
-                        <img src="{{ asset('images/img1.png') }}" alt="Image 2">
+                    <a href="{{ route('bidders_sellers.index') }}" class="btn-img">
+                        <img src="{{ asset('images/addbs.png') }}" alt="ADD BS">
                     </a>
                 </div>
                 <div class="col-6 col-md-3 mb-3">
-                    <a href="{{ route('page.listpdf') }}"class="btn-img">
+                    <a href="{{ route('page.listpdf') }}" class="btn-img">
                         <img src="{{ asset('images/downloadpdf.png') }}" alt="Download PDF">
                     </a>
                 </div>
                 <div class="col-6 col-md-3 mb-3">
-                    <a class="btn-img">
+                    <a class="btn-img no-hover">
                         <img src="{{ asset('images/img2.png') }}" alt="Image 4">
                     </a>
                 </div>
             </div>
             <div class="row">
                 <div class="col-6 col-md-3 mb-3">
-                    <a class="btn-img">
+                    <a class="btn-img no-hover">
                         <img src="{{ asset('images/img3.png') }}" alt="Image 5">
                     </a>
                 </div>
@@ -82,7 +79,7 @@
                     </a>
                 </div>
                 <div class="col-6 col-md-3 mb-3">
-                    <a class="btn-img">
+                    <a class="btn-img no-hover">
                         <img src="{{ asset('images/img4.png') }}" alt="Image 7">
                     </a>
                 </div>
@@ -99,7 +96,7 @@
                     </a>
                 </div>
                 <div class="col-6 col-md-3 mb-3">
-                    <a class="btn-img">
+                    <a class="btn-img no-hover">
                         <img src="{{ asset('images/img5.png') }}" alt="Image 10">
                     </a>
                 </div>
@@ -120,11 +117,24 @@
         </div>
     </div>
 
-    @if (session('success'))
-        <div class="alert alert-success">
-            {{ session('success') }}
-        </div>
-    @endif
+   <!-- SweetAlert2 CSS และ JS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+
+    <!-- เพิ่มแจ้งเตือนด้วย SweetAlert2 -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        @if(session('success'))
+            Swal.fire({
+                icon: 'success',
+                title: 'สำเร็จ!',
+                text: '{{ session('success') }}',
+                timer: 3000,
+                showConfirmButton: false
+            });
+        @endif
+    });
+</script>
 
     @if (session('error'))
         <div class="alert alert-danger">

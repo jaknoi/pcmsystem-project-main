@@ -58,7 +58,7 @@
 
                 <!-- แสดงข้อมูลจากตาราง Inspector -->
                 @if($info->inspectors->count())
-                <strong>ผู้เสนอราคา</strong>
+                <strong>ผู้ตรวจสอบ</strong>
                     <ul>
                         @foreach($info->inspectors as $inspector)
                             <li>{{ $inspector->inspector_name }} - ตำแหน่ง: {{ $inspector->inspector_position }}</li>
@@ -66,9 +66,53 @@
                     </ul>
                 @endif
 
-                <button type="submit" class="btn btn-primary">Confirm</button>
-                <a href="{{ route('page.list') }}" class="btn btn-danger">Cancel</a>
+                <!-- แสดงข้อมูลจากตาราง More -->
+                @if($info->mores->count())
+                <strong>ข้อมูลเพิ่มเติม</strong>
+                    <ul>
+                        @foreach($info->mores as $more)
+                            <li><strong>ใบเสนอราคา:</strong> {{ $more->price_list }}</li>
+                            <li><strong>เอกสารขออนุมัติ:</strong> {{ $more->request_documents }}</li>
+                            <li><strong>แหล่งที่มาของราคากลาง 1:</strong> {{ $more->middle_price_first }}</li>
+                            <li><strong>แหล่งที่มาของราคากลาง 2:</strong> {{ $more->middle_price_second }}</li>
+                            <li><strong>แหล่งที่มาของราคากลาง 3:</strong> {{ $more->middle_price_third }}</li>
+                        @endforeach
+                    </ul>
+                @endif
+
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-primary">ยืนยัน</button>
+                    <a href="{{ route('page.list') }}" class="btn btn-danger">ยกเลิก</a>
+                </div>
             </form>
         </div>
     </div>
+
+    <!-- SweetAlert2 CSS และ JS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+
+    <!-- เพิ่มแจ้งเตือนด้วย SweetAlert2 -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            @if(session('success'))
+                Swal.fire({
+                    icon: 'success',
+                    title: 'สำเร็จ!',
+                    text: '{{ session('success') }}',
+                    timer: 3000,
+                    showConfirmButton: false
+                });
+            @endif
+        });
+    </script>
+
+    <style>
+       .btn {
+            transition: transform 0.3s;
+        }
+        .btn:hover {
+            transform: scale(1.1); /* ซูมเข้าขณะ hover */
+        }
+    </style>
 @endsection

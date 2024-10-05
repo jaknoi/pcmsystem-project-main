@@ -40,8 +40,8 @@ return new class extends Migration
             $table->string('seller_name');
             $table->string('address');
             $table->string('taxpayer_number', 13);
-            $table->string('reference_documents');
-            $table->foreignId('info_id')->constrained('info')->onDelete('cascade'); // Foreign key
+            $table->string('reference_documents')->nullable();
+            $table->foreignId('info_id')->nullable()->constrained('info')->onDelete('cascade'); // Foreign key, nullable
             $table->timestamps();
         });
 
@@ -59,7 +59,7 @@ return new class extends Migration
             $table->id(); // Primary key, auto-incrementing
             $table->string('bidder_name');
             $table->string('bidder_position');
-            $table->foreignId('info_id')->constrained('info')->onDelete('cascade'); // Foreign key
+            $table->foreignId('info_id')->nullable()->constrained('info')->onDelete('cascade'); // Foreign key, nullable
             $table->timestamps();
         });
 
@@ -74,6 +74,18 @@ return new class extends Migration
         Schema::table('info', function (Blueprint $table) {
             $table->string('template_source')->nullable(); // เก็บค่า 'form' หรือ 'formk'
         });
+
+        //เพิ่มเติม
+        Schema::create('more', function (Blueprint $table) {
+            $table->id(); // Primary key, auto-incrementing
+            $table->string('price_list');
+            $table->string('request_documents');
+            $table->string('middle_price_first');
+            $table->string('middle_price_second');
+            $table->string('middle_price_third');
+            $table->foreignId('info_id')->constrained('info')->onDelete('cascade'); // Foreign key
+            $table->timestamps();
+        });
         
     }
 
@@ -82,6 +94,7 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::dropIfExists('more');
         Schema::dropIfExists('inspector');
         Schema::dropIfExists('bidder');
         Schema::dropIfExists('committee_member');
