@@ -646,29 +646,21 @@ public function downloadMonthlyPdf(Request $request)
 }
 
 
-
-
-
-
 public function downloadQuarterlyPdf($year, $quarter)
 {
-    // Convert the quarter string to the actual months
+    // Adjust for fiscal year quarters
     $months = [];
-    switch ($quarter) {
-        case '1':
-            $months = [1, 2, 3]; // January to March
-            break;
-        case '2':
-            $months = [4, 5, 6]; // April to June
-            break;
-        case '3':
-            $months = [7, 8, 9]; // July to September
-            break;
-        case '4':
-            $months = [10, 11, 12]; // October to December
-            break;
-        default:
-            return redirect()->back()->with('error', 'Invalid quarter selected.');
+    if ($quarter == 1) {
+        $months = [10, 11, 12];
+         // Use previous year for Q1 (Oct-Dec)
+    } elseif ($quarter == 2) {
+        $months = [1, 2, 3];
+    } elseif ($quarter == 3) {
+        $months = [4, 5, 6];
+    } elseif ($quarter == 4) {
+        $months = [7, 8, 9];
+    } else {
+        return redirect()->back()->with('error', 'Invalid quarter selected.');
     }
 
     // ดึงข้อมูลตามไตรมาสที่เลือก
@@ -686,12 +678,12 @@ public function downloadQuarterlyPdf($year, $quarter)
     foreach ($quarterlyData as $info) {
         $totalPrice = 0;
         foreach ($info->products as $product) {
-            $totalPrice += $product->quantity * $product->product_price; // คำนวณยอดรวมสำหรับแต่ละรายการ
+            $totalPrice += $product->quantity * $product->product_price;
         }
-        $info->total_price = $totalPrice; // เพิ่มยอดรวมใน $info
+        $info->total_price = $totalPrice;
     }
 
-    // สร้าง PDF โดยใช้ TCPDF
+    // สร้าง PDF โดยไม่ใช้ฟอนต์
     $pdf = new \TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
     $pdf->SetCreator(PDF_CREATOR);
     $pdf->SetTitle('ประกาศผลผู้ชนะการจัดซื้อจัดจ้าง ประจำไตรมาส');
@@ -699,21 +691,26 @@ public function downloadQuarterlyPdf($year, $quarter)
     $pdf->SetAutoPageBreak(TRUE, PDF_MARGIN_BOTTOM);
     $pdf->AddPage('L', 'A4');
 
-    // ตั้งค่าฟอนต์
-    $pdf->SetFont('thsarabunit', '', 16); // เปลี่ยนเป็นฟอนต์ที่ต้องการ
+    // ใช้ฟอนต์เริ่มต้นของ TCPDF
+    $pdf->SetFont('thsarabunit', '', 16);
 
     // สร้างเนื้อหา PDF
-    $monthRange = $this->getQuarterMonths($quarter); // Get the month range
+    $monthRange = $this->getQuarterMonths($quarter);
     $htmlContent = view('pdf.quarterly', compact('quarterlyData', 'year', 'quarter', 'monthRange'))->render();
+
+    // ตรวจสอบว่าเนื้อหาเป็นไปตามที่ต้องการหรือไม่
+    if (!$htmlContent) {
+        return redirect()->back()->with('error', 'ไม่สามารถสร้างเนื้อหา PDF ได้');
+    }
+
     $pdf->writeHTML($htmlContent, true, false, true, false, '');
 
     // กำหนดชื่อไฟล์ PDF
     $pdfFileName = "ประกาศผลผู้ชนะการจัดซื้อจัดจ้าง_ไตรมาส{$quarter}_{$monthRange}_{$year}.pdf";
 
-
     // ส่งไฟล์ PDF ให้กับผู้ใช้เพื่อดาวน์โหลด
     return response()->stream(function() use ($pdf, $pdfFileName) {
-        $pdf->Output($pdfFileName, 'D'); // 'D' หมายถึงการดาวน์โหลด
+        $pdf->Output($pdfFileName, 'D');
     }, 200, [
         'Content-Type' => 'application/pdf',
         'Content-Disposition' => 'attachment; filename="' . $pdfFileName . '"',
@@ -721,20 +718,23 @@ public function downloadQuarterlyPdf($year, $quarter)
 }
 
 
-private function getQuarterMonths($quarter) {
+
+private function getQuarterMonths($quarter)
+{
     switch ($quarter) {
         case 1:
-            return 'มกราคม - มีนาคม';
-        case 2:
-            return 'เมษายน - มิถุนายน';
-        case 3:
-            return 'กรกฎาคม - กันยายน';
-        case 4:
             return 'ตุลาคม - ธันวาคม';
+        case 2:
+            return 'มกราคม - มีนาคม';
+        case 3:
+            return 'เมษายน - มิถุนายน';
+        case 4:
+            return 'กรกฎาคม - กันยายน';
         default:
             return '';
     }
 }
+
 
 
 

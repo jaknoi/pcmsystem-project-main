@@ -140,12 +140,13 @@
                     </div>
                 </div>
             </div>
-            <div class="card-footer d-flex justify-content-between">
+            
+        </div>
+        <div class="card-footer d-flex justify-content-between">
                 <a href="{{ url('/page') }}" role="button" class="btn btn-danger hover-btn">
                     <i class="fas fa-arrow-left"></i> กลับ
                 </a>
             </div>
-        </div>
     </div>
 </div>
 <!-- SweetAlert2 CSS และ JS -->

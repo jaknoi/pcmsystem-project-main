@@ -238,31 +238,34 @@ public function showCreateForm($id = null)
     $allInspectors = Inspector::all()->unique('inspector_name');
     $allCommitteeMembers = CommitteeMember::all()->unique('member_name');
 
-
+  
 
     return view('page.form', compact('info', 'allSellers', 'allBidders', 'allInspectors', 'allCommitteeMembers'));
 }
 
 
-    public function showCreateFormk($id = null)
-    {
-        $info = $id ? Info::with(['products', 'sellers', 'committeemembers', 'bidders', 'inspectors','mores'])->findOrFail($id) : new Info();
+
+public function showCreateFormk($id = null)
+{
+    $info = $id ? Info::with(['products', 'sellers', 'committeemembers', 'bidders', 'inspectors', 'mores'])->findOrFail($id) : new Info();
+
+    $info->date = $info->date ? Carbon::parse($info->date) : null;
+    $info->date_thai = $info->date ? $info->date->translatedFormat('j F Y') : '';
+
+    // ดึงข้อมูลผู้ขายทั้งหมดจากฐานข้อมูล
+    $allSellers = Seller::all()->unique('seller_name');
+    $allBidders = Bidder::all()->unique('bidder_name');
+    $allInspectors = Inspector::all()->unique('inspector_name');
+    $allCommitteeMembers = CommitteeMember::all()->unique('member_name');
+    $allMores = More::all();
+
+    
+
+    return view('page.formk', compact('info', 'allSellers', 'allBidders', 'allInspectors', 'allCommitteeMembers', 'allMores'));
+}
 
 
-        $info->date = $info->date ? Carbon::parse($info->date) : null;
 
-        $info->date_thai = $info->date ? $info->date->translatedFormat('j F Y') : '';
-       
-         // ดึงข้อมูลผู้ขายทั้งหมดจากฐานข้อมูล
-        $allSellers = Seller::all()->unique('seller_name');
-        $allBidders = Bidder::all()->unique('bidder_name');
-        $allInspectors = Inspector::all()->unique('inspector_name');
-        $allCommitteeMembers = CommitteeMember::all()->unique('member_name');
-        $allMores = More::all();
- 
-  
-         return view('page.formk', compact('info', 'allSellers' , 'allBidders', 'allInspectors', 'allCommitteeMembers','allMores'));
-    }
 
     public function add(Request $request)
 {
@@ -376,6 +379,7 @@ History::create([
                 }
             }
     
+
             // ตรวจสอบงบประมาณคงเหลือ
             $budget = Budget::first();
         
@@ -420,29 +424,37 @@ History::create([
                 }
             }
     
-            // บันทึกข้อมูลผู้ขายรวมถึงการอัปโหลดไฟล์ PDF
-            $sellers = $request->input('sellers', []);
-            if (is_array($sellers)) {
-                foreach ($sellers as $index => $sellerData) {
-                    if (is_array($sellerData)) {
-                        // ตรวจสอบและอัปโหลดไฟล์ PDF
-                        if ($request->hasFile("sellers.$index.pdf_file")) {
-                            $pdfFile = $request->file("sellers.$index.pdf_file");
-                            $pdfPath = $pdfFile->store('pdfs', 'public'); // จัดเก็บไฟล์ในโฟลเดอร์ public
-                        } else {
-                            $pdfPath = $sellerData['pdf_file'] ?? null; // รักษาค่าเดิมหากไม่มีการอัปโหลดใหม่
-                        }
-    
-                        Seller::updateOrCreate(
-                            ['id' => $sellerData['id'] ?? null],
-                            array_merge($sellerData, [
-                                'info_id' => $data->id,
-                                'pdf_file' => $pdfPath // เพิ่ม path ของไฟล์ PDF
-                            ])
-                        );
+           // ดึงข้อมูลผู้ขายจากฟอร์ม
+        $sellers = $request->input('sellers', []);
+        if (is_array($sellers)) {
+            foreach ($sellers as $index => $sellerData) {
+                if (is_array($sellerData)) {
+                    // ตรวจสอบและอัปโหลดไฟล์ PDF ใหม่
+                    if ($request->hasFile("sellers.$index.pdf_file")) {
+                        $pdfFile = $request->file("sellers.$index.pdf_file");
+
+                        // ดึงชื่อไฟล์เดิม
+                        $originalFileName = $pdfFile->getClientOriginalName();
+
+                        // จัดเก็บไฟล์ด้วยชื่อไฟล์เดิมในโฟลเดอร์ 'pdfs' ภายใต้ 'public'
+                        $pdfPath = $pdfFile->storeAs('pdfs', $originalFileName, 'public');
+                    } else {
+                        // หากไม่มีการอัปโหลดใหม่ ให้ใช้ไฟล์ PDF เดิมจากฟิลด์ซ่อน
+                        $pdfPath = $sellerData['pdf_file'] ?? null;
                     }
+
+                    // บันทึกหรืออัปเดตข้อมูลผู้ขาย
+                    Seller::updateOrCreate(
+                        ['id' => $sellerData['id'] ?? null],
+                        array_merge($sellerData, [
+                            'info_id' => $data->id,
+                            'pdf_file' => $pdfPath // ใช้ไฟล์ PDF ที่อัปโหลดใหม่หรือไฟล์เดิม
+                        ])
+                    );
                 }
             }
+        }
+
         
             // บันทึกข้อมูลคณะกรรมการ
             $committeemembers = $request->input('committeemembers', []);
@@ -503,46 +515,63 @@ History::create([
     
 
     public function dashboard()
-{
-    // Query to get monthly counts for 'จัดซื้อ' and 'จัดจ้าง'
-    $monthlyData = DB::table('info')
-        ->select(DB::raw('MONTH(date) as month, 
-                            SUM(CASE WHEN methode_name = "จัดซื้อ" THEN 1 ELSE 0 END) as purchase_count, 
-                            SUM(CASE WHEN methode_name = "จัดจ้าง" THEN 1 ELSE 0 END) as hiring_count'))
-        ->groupBy(DB::raw('MONTH(date)'))
-        ->orderBy('month')
-        ->get();
+    {
+        // Query to get monthly counts for 'จัดซื้อ' and 'จัดจ้าง' starting from October
+        $monthlyData = DB::table('info')
+            ->select(DB::raw('MONTH(date) as month, 
+                                SUM(CASE WHEN methode_name = "จัดซื้อ" THEN 1 ELSE 0 END) as purchase_count, 
+                                SUM(CASE WHEN methode_name = "จัดจ้าง" THEN 1 ELSE 0 END) as hiring_count'))
+            ->whereYear('date', date('Y') - 1) // Adjust this for fiscal year starting October
+            ->orWhere(function ($query) {
+                $query->whereYear('date', date('Y'))
+                      ->whereMonth('date', '>=', 10); // Select data from October of the previous year
+            })
+            ->groupBy(DB::raw('MONTH(date)'))
+            ->orderBy('month')
+            ->get();
+        
+        // Adjust the months to start from October
+        $months = ['ตุลาคม', 'พฤศจิกายน', 'ธันวาคม', 'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน'];
     
-    // Prepare data for 'จัดซื้อ' and 'จัดจ้าง' chart
-    $months = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
-    $purchaseData = array_fill(0, 12, 0);
-    $hiringData = array_fill(0, 12, 0);
+        // Initialize the data arrays starting from October
+        $purchaseData = array_fill(0, 12, 0);
+        $hiringData = array_fill(0, 12, 0);
     
-    foreach ($monthlyData as $data) {
-        $purchaseData[$data->month - 1] = $data->purchase_count;
-        $hiringData[$data->month - 1] = $data->hiring_count;
+        // Map the database result to the correct fiscal year month index
+        foreach ($monthlyData as $data) {
+            $monthIndex = ($data->month + 2) % 12; // Shift months to start from October
+            $purchaseData[$monthIndex] = $data->purchase_count;
+            $hiringData[$monthIndex] = $data->hiring_count;
+        }
+    
+        // Query to get monthly counts for 'วัสดุ' and 'ครุภัณฑ์'
+        $productMonthlyData = DB::table('product')
+            ->select(DB::raw('MONTH(created_at) as month, 
+                                SUM(CASE WHEN product_type = "วัสดุ" THEN quantity ELSE 0 END) as material_count, 
+                                SUM(CASE WHEN product_type = "ครุภัณฑ์" THEN quantity ELSE 0 END) as equipment_count'))
+            ->whereYear('created_at', date('Y') - 1) // Adjust for fiscal year starting October
+            ->orWhere(function ($query) {
+                $query->whereYear('created_at', date('Y'))
+                      ->whereMonth('created_at', '>=', 10); // Select data from October
+            })
+            ->groupBy(DB::raw('MONTH(created_at)'))
+            ->orderBy('month')
+            ->get();
+    
+        // Initialize the data arrays for products starting from October
+        $materialData = array_fill(0, 12, 0);
+        $equipmentData = array_fill(0, 12, 0);
+    
+        // Map the product data to the correct fiscal year month index
+        foreach ($productMonthlyData as $data) {
+            $monthIndex = ($data->month + 2) % 12; // Shift months to start from October
+            $materialData[$monthIndex] = $data->material_count;
+            $equipmentData[$monthIndex] = $data->equipment_count;
+        }
+    
+        return view('dashboard', compact('months', 'purchaseData', 'hiringData', 'materialData', 'equipmentData'));
     }
-
-    // Query to get monthly counts for 'วัสดุ' and 'ครุภัณฑ์'
-    $productMonthlyData = DB::table('product')
-        ->select(DB::raw('MONTH(created_at) as month, 
-                            SUM(CASE WHEN product_type = "วัสดุ" THEN quantity ELSE 0 END) as material_count, 
-                            SUM(CASE WHEN product_type = "ครุภัณฑ์" THEN quantity ELSE 0 END) as equipment_count'))
-        ->groupBy(DB::raw('MONTH(created_at)'))
-        ->orderBy('month')
-        ->get();
     
-    // Prepare data for 'วัสดุ' and 'ครุภัณฑ์' chart
-    $materialData = array_fill(0, 12, 0);
-    $equipmentData = array_fill(0, 12, 0);
-    
-    foreach ($productMonthlyData as $data) {
-        $materialData[$data->month - 1] = $data->material_count;
-        $equipmentData[$data->month - 1] = $data->equipment_count;
-    }
-
-    return view('dashboard', compact('months', 'purchaseData', 'hiringData', 'materialData', 'equipmentData'));
-}
 
     
 public function showHistory(Request $request)

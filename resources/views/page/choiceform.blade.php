@@ -4,16 +4,14 @@
 @section('info')
     <style>
         body {
-            
-            
-            
+            background-color: #f8f9fa;
         }
 
         /* การ์ด */
         .custom-card {
-            width: 50rem;
-            height: 10rem;
-            overflow: hidden;
+            width: 30rem;
+            height: auto;
+            padding: 2rem;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -29,36 +27,64 @@
             box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
         }
 
-        /* รูปภาพภายในการ์ด */
-        .custom-card-img {
+        /* ฟิลด์กรอกข้อมูล */
+        .custom-input {
+            font-size: 1.5rem;
+            text-align: center;
             width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: transform 0.3s ease;
+            padding: 0.5rem;
+            border-radius: 5px;
+            border: 1px solid #ccc;
         }
 
-       
+        /* ปุ่ม */
+        .custom-button {
+            width: 100%;
+            padding: 0.75rem;
+            background-color: #092174;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .custom-button:hover {
+            background-color: #0d47a1;
+        }
     </style>
 
-    <div class="container-fluid vh-100 d-flex justify-content-center align-items-center">
-        <div class="d-flex flex-column align-items-center">
-            <!-- Card 1 -->
-            <div class="mb-5"> <!-- เพิ่มระยะห่างระหว่างการ์ด -->
-                <div class="card custom-card">
-                    <a href="{{ route('page.create') }}" class="btn-img">
-                        <img src="{{ asset('images/choiceform1.png') }}" class="card-img-top custom-card-img" alt="Image 1">
-                    </a>
-                </div>
-            </div>
-
-            <!-- Card 2 -->
-            <div>
-                <div class="card custom-card">
-                    <a href="{{ route('page.createk') }}" class="btn-img">
-                    <img src="{{ asset('images/choiceform2.png') }}" class="card-img-top custom-card-img" alt="Image 2">
-                </a>
-                </div>
-            </div>
+    <div class="container-fluid  d-flex justify-content-center align-items-center">
+        <div class="card custom-card">
+            <form id="budgetForm">
+                <h2 class="text-center mb-4">กรุณากรอกงบประมาณ</h2>
+                <input type="text" id="budgetInput" class="custom-input mb-3" placeholder="งบประมาณ" required>
+                <button type="submit" class="custom-button">ยืนยัน</button>
+            </form>
         </div>
     </div>
+
+    <script>
+        document.getElementById('budgetInput').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/,/g, ''); // ลบเครื่องหมายจุลภาคเดิมก่อน
+            if (!isNaN(value) && value !== '') {
+                e.target.value = Number(value).toLocaleString(); // จัดรูปแบบใหม่โดยใส่จุลภาค
+            }
+        });
+
+        document.getElementById('budgetForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            // รับค่างบประมาณจากช่องกรอก โดยลบจุลภาคออกก่อน
+            const budget = parseFloat(document.getElementById('budgetInput').value.replace(/,/g, ''));
+
+            // ตรวจสอบค่างบประมาณและพาไปยังหน้าที่ต้องการ
+            if (budget > 100000) {
+                window.location.href = "{{ route('page.createk') }}";
+            } else {
+                window.location.href = "{{ route('page.create') }}";
+            }
+        });
+    </script>
 @endsection

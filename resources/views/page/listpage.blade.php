@@ -18,15 +18,15 @@
         </form>
 
         <div class="table-responsive">
-            <table class="table table-striped table-bordered">
+            <table class="table table-hover table-bordered text-center align-middle">
                 <thead class="table-dark">
                     <tr>
                         <th>ID</th>
                         <th>ประเภท</th>
                         <th>เหตุผล</th>
-                        <th>ไฟล์ PDF</th>
                         <th>วันที่สร้างไฟล์</th>
-                        <th>ระยะเวลาแล้วเสร็จ</th>
+                        <th>ชื่อผู้ขาย</th>
+                        <th>เอกสารอ้างอิง</th>
                         <th>การดำเนินการ</th>
                         <th>สถานะ</th>
                     </tr>
@@ -37,12 +37,21 @@
                         <td>{{ $item->id }}</td>
                         <td>{{ $item->methode_name }}</td>
                         <td>{{ $item->reason_description }}</td>
-                        <!-- เปลี่ยนจากการแสดงคณะเป็นลิงก์ชื่อไฟล์ PDF และแสดงเป็น popup -->
+                        <td>{{ $item->created_at->format('d/m/Y') }}</td>
+                        <td>
+                            @if ($item->sellers && $item->sellers->count() > 0)
+                            @foreach ($item->sellers as $seller)
+                            {{ $seller->seller_name }}<br>
+                            @endforeach
+                            @else
+                            ไม่มีข้อมูลผู้ขาย
+                            @endif
+                        </td>
                         <td>
                             @if ($item->sellers && $item->sellers->count() > 0)
                             @foreach ($item->sellers as $seller)
                             @if ($seller->pdf_file)
-                            <button class="btn btn-sm btn-primary"
+                            <button class="btn btn-sm btn-outline-danger"
                                 onclick="showPdfPopup('{{ asset('storage/' . $seller->pdf_file) }}', '{{ basename($seller->pdf_file) }}')">
                                 <i class="fas fa-file-pdf"></i> {{ basename($seller->pdf_file) }}
                             </button><br>
@@ -55,44 +64,45 @@
                             @endif
                         </td>
 
-                        <td>{{ $item->created_at->format('d/m/y') }}</td>
-                        <td>{{ $item->devilvery_time }}</td>
                         <td>
                             @if ($item->status != 'Complete')
                             <a href="{{ route('page.confirm', $item->id) }}" role="button"
-                                class="btn btn-sm btn-danger">
+                                class="btn btn-sm btn-danger mb-1">
                                 <i class="fas fa-sync-alt"></i> แปลงไฟล์
                             </a>
 
                             <!-- ตรวจสอบค่า template_source เพื่อตรวจสอบว่าจะพาไปหน้า edit หรือ editk -->
                             @if ($item->template_source == 'formk')
-                            <a href="{{ url("page/{$item->id}/editk") }}" role="button" class="btn btn-sm btn-warning">
+                            <a href="{{ url("page/{$item->id}/editk") }}" role="button"
+                                class="btn btn-sm btn-warning mb-1">
                                 <i class="fas fa-edit"></i> แก้ไข
                             </a>
                             @else
-                            <a href="{{ url("page/{$item->id}/edit") }}" role="button" class="btn btn-sm btn-warning">
+                            <a href="{{ url("page/{$item->id}/edit") }}" role="button"
+                                class="btn btn-sm btn-warning mb-1">
                                 <i class="fas fa-edit"></i> แก้ไข
                             </a>
                             @endif
 
                             <!-- ปุ่มสำหรับดูข้อมูลเพิ่มเติม -->
-                            <button type="button" class="btn btn-sm btn-info"
+                            <button type="button" class="btn btn-sm btn-info mb-1"
                                 onclick="showInfo({{ json_encode($item) }})">
                                 <i class="fas fa-eye"></i> ดูข้อมูล
                             </button>
                             @else
-                            <button class="btn btn-sm btn-secondary" disabled>
+                            <button class="btn btn-sm btn-secondary mb-1" disabled>
                                 <i class="fas fa-sync-alt"></i> แปลงไฟล์
                             </button>
-                            <button class="btn btn-sm btn-secondary" disabled>
+                            <button class="btn btn-sm btn-secondary mb-1" disabled>
                                 <i class="fas fa-edit"></i> แก้ไข
                             </button>
-                            <button type="button" class="btn btn-sm btn-info"
+                            <button type="button" class="btn btn-sm btn-info mb-1"
                                 onclick="showInfo({{ json_encode($item) }})">
                                 <i class="fas fa-eye"></i> ดูข้อมูล
                             </button>
                             @endif
                         </td>
+
                         <td>
                             @if ($item->status == 'Complete')
                             <span class="badge bg-success">Completed</span>
@@ -122,17 +132,21 @@
             console.log(pdfUrl); // ตรวจสอบ URL ของไฟล์ PDF
             Swal.fire({
                 title: fileName,
-                html: `<div id="pdfViewer" style="height: 500px;"></div>`,
-                width: '80%',
+                html: `<div id="pdfViewer" style="width:100%; height:700px;"></div>`,
+                width: '60%', // ปรับความกว้างของป๊อปอัพเพื่อให้เป็นแนวตั้ง
                 showCloseButton: true,
                 showCancelButton: false,
                 focusConfirm: false,
                 confirmButtonText: 'ปิด',
                 didOpen: () => {
-                    PDFObject.embed(pdfUrl, "#pdfViewer");
+                    PDFObject.embed(pdfUrl, "#pdfViewer", {
+                        height: "100%",
+                        width: "100%"
+                    });
                 }
             });
         }
+
 
 
         function showInfo(item) {
@@ -243,13 +257,35 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 
 <style>
+.card {
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+    font-size: 2rem;
+    color: #333;
+}
+
+.table-hover tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+.table {
+    border: 1px solid #dee2e6;
+}
+
+.table th,
+.table td {
+    vertical-align: middle;
+}
+
 .btn {
     transition: transform 0.3s;
 }
 
 .btn:hover {
-    transform: scale(1.1);
-    /* ซูมเข้าขณะ hover */
+    transform: scale(1.05);
 }
 </style>
 @endsection

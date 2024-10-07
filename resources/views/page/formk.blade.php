@@ -29,7 +29,8 @@
 <div class="card">
     <div class="card-body">
         <h2 style="color: rgb(255, 0, 0); text-align: center;">เอกสารจัดซื้อจัดจ้างเกินแสน</h2>
-        <form action="{{ empty($info->id) ? url('/page') : url('/page/' . $info->id) }}" method="post">
+        <form action="{{ empty($info->id) ? url('/page') : url('/page/' . $info->id) }}" method="post"
+            enctype="multipart/form-data">
             @if (!empty($info->id))
             @method('put')
             @endif
@@ -55,8 +56,9 @@
                         <div class="col-md-6 mb-3">
                             <label for="date" class="form-label">วันที่</label>
                             <input type="date" class="form-control" id="date" name="date" required
-                                value="{{ old('date', $info->date ? $info->date->format('Y-m-d') : '') }}">
+                                value="{{ old('date', $info->date ? $info->date->format('Y-m-d') : now()->format('Y-m-d')) }}">
                         </div>
+
                     </div>
 
                     <div class="mb-3">
@@ -69,7 +71,8 @@
                     <div class="mb-3">
                         <label for="office_name" class="form-label">สังกัด</label>
                         <input type="text" class="form-control" id="office_name" name="office_name" placeholder="สังกัด"
-                            required value="{{ old('office_name', $info->office_name ?? '') }}">
+                            required
+                            value="{{ old('office_name', $info->office_name ?? 'คณะวิทยาศาสตร์และนวัตกรรมดิจิทัล') }}">
                     </div>
 
 
@@ -81,29 +84,7 @@
                     </div>
                 </div>
             </div>
-            <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                // ฟังก์ชันแปลงวันที่
-                function formatDate(dateString) {
-                    const months = [
-                        "มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน",
-                        "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"
-                    ];
-                    const date = new Date(dateString);
-                    const day = date.getDate();
-                    const month = months[date.getMonth()];
-                    const year = date.getFullYear() + 543; // เพิ่ม 543 สำหรับปีพุทธศักราช
-                    return `${day} ${month} ${year}`;
-                }
 
-                // อัปเดตวันที่เมื่อมีการเปลี่ยนแปลงฟิลด์วันที่
-                document.getElementById('date').addEventListener('change', function() {
-                    const dateValue = this.value;
-                    document.getElementById('date_display').value = dateValue ? formatDate(dateValue) :
-                        '';
-                });
-            });
-            </script>
 
             <!-- Products Section -->
             <div class="card mb-4">
@@ -111,97 +92,117 @@
                 <div class="card-body" style="background-color: #6db8ff;">
                     <div class="mb-3">
                         <div id="products-container">
-                            @foreach ($info->products as $product)
-                            <div class="product-entry mb-3">
-                                <input type="hidden" name="products[{{ $loop->index }}][id]" value="{{ $product->id }}">
-                                <div class="mb-2">
-                                    <label for="products[{{ $loop->index }}][product_type]"
+                            <!-- แสดงผลิตภัณฑ์ที่เคยกรอกไว้หากเกิดข้อผิดพลาด หรือดึงข้อมูลจากฐานข้อมูลถ้ามี -->
+                            @php
+                            $oldProducts = old('products', $info->products ?? []);
+                            @endphp
+                            @foreach ($oldProducts as $index => $product)
+                            <div class="product-entry mb-3 d-flex" id="product-{{ $index }}">
+                                <input type="hidden" name="products[{{ $index }}][id]"
+                                    value="{{ $product['id'] ?? '' }}">
+                                <div class="mb-2 me-2" style="flex-basis: 150px;">
+                                    <label for="products[{{ $index }}][product_type]"
                                         class="form-label">ประเภทผลิตภัณฑ์</label>
-                                    <select class="form-control" id="products[{{ $loop->index }}][product_type]"
-                                        name="products[{{ $loop->index }}][product_type]" required>
-                                        <option value="" disabled
-                                            {{ old('products.' . $loop->index . '.product_type', $product->product_type) == '' ? 'selected' : '' }}>
-                                            เลือกประเภท</option>
+                                    <select class="form-control" id="products[{{ $index }}][product_type]"
+                                        name="products[{{ $index }}][product_type]" required>
                                         <option value="วัสดุ"
-                                            {{ old('products.' . $loop->index . '.product_type', $product->product_type) == 'วัสดุ' ? 'selected' : '' }}>
+                                            {{ old('products.' . $index . '.product_type', $product['product_type'] ?? '') == 'วัสดุ' ? 'selected' : '' }}>
                                             วัสดุ</option>
                                         <option value="ครุภัณฑ์"
-                                            {{ old('products.' . $loop->index . '.product_type', $product->product_type) == 'ครุภัณฑ์' ? 'selected' : '' }}>
+                                            {{ old('products.' . $index . '.product_type', $product['product_type'] ?? '') == 'ครุภัณฑ์' ? 'selected' : '' }}>
                                             ครุภัณฑ์</option>
                                     </select>
                                 </div>
-                                <div class="mb-2">
-                                    <label for="products[{{ $loop->index }}][product_name]"
+                                <div class="flex-grow-1 mb-2 me-2">
+                                    <label for="products[{{ $index }}][product_name]"
                                         class="form-label">ชื่อผลิตภัณฑ์</label>
-                                    <input type="text" class="form-control"
-                                        id="products[{{ $loop->index }}][product_name]"
-                                        name="products[{{ $loop->index }}][product_name]" placeholder="ชื่อผลิตภัณฑ์"
-                                        value="{{ old('products.' . $loop->index . '.product_name', $product->product_name) }}">
+                                    <input type="text" class="form-control" id="products[{{ $index }}][product_name]"
+                                        name="products[{{ $index }}][product_name]"
+                                        value="{{ old('products.' . $index . '.product_name', $product['product_name'] ?? '') }}"
+                                        placeholder="ชื่อผลิตภัณฑ์" required>
                                 </div>
-                                <div class="mb-2">
-                                    <label for="products[{{ $loop->index }}][quantity]" class="form-label">จำนวน</label>
-                                    <input type="number" class="form-control"
-                                        id="products[{{ $loop->index }}][quantity]"
-                                        name="products[{{ $loop->index }}][quantity]" placeholder="จำนวน"
-                                        value="{{ old('products.' . $loop->index . '.quantity', $product->quantity) }}">
+                                <div class="mb-2 me-2" style="flex-basis: 150px;">
+                                    <label for="products[{{ $index }}][quantity]" class="form-label">จำนวน</label>
+                                    <input type="number" class="form-control" id="products[{{ $index }}][quantity]"
+                                        name="products[{{ $index }}][quantity]"
+                                        value="{{ old('products.' . $index . '.quantity', $product['quantity'] ?? '') }}"
+                                        placeholder="จำนวน" required>
                                 </div>
-                                <div class="mb-2">
-                                    <label for="products[{{ $loop->index }}][unit]" class="form-label">หน่วย</label>
-                                    <input type="text" class="form-control" id="products[{{ $loop->index }}][unit]"
-                                        name="products[{{ $loop->index }}][unit]" placeholder="หน่วย"
-                                        value="{{ old('products.' . $loop->index . '.unit', $product->unit) }}">
+                                <div class="mb-2 me-2" style="flex-basis: 150px;">
+                                    <label for="products[{{ $index }}][unit]" class="form-label">หน่วย</label>
+                                    <input type="text" class="form-control" id="products[{{ $index }}][unit]"
+                                        name="products[{{ $index }}][unit]"
+                                        value="{{ old('products.' . $index . '.unit', $product['unit'] ?? '') }}"
+                                        placeholder="หน่วย" required>
                                 </div>
-                                <div class="mb-2">
-                                    <label for="products[{{ $loop->index }}][product_price]"
-                                        class="form-label">ราคาผลิตภัณฑ์</label>
+                                <div class="mb-2" style="flex-basis: 150px;">
+                                    <label for="products[{{ $index }}][product_price]"
+                                        class="form-label">ราคาผลิตภัณฑ์/หน่วย</label>
                                     <input type="text" class="form-control product-price"
-                                        id="products[{{ $loop->index }}][product_price]"
-                                        name="products[{{ $loop->index }}][product_price]" placeholder="ราคาผลิตภัณฑ์"
-                                        value="{{ old('products.' . $loop->index . '.product_price', number_format($product->product_price, 2)) }}">
+                                        id="products[{{ $index }}][product_price]"
+                                        name="products[{{ $index }}][product_price]"
+                                        value="{{ old('products.' . $index . '.product_price', $product['product_price'] ?? '') }}"
+                                        placeholder="ราคาผลิตภัณฑ์" required>
                                 </div>
+                                <button type="button" class="btn btn-danger btn-sm remove-product"
+                                    data-id="product-{{ $index }}" style="margin-left: 10px; padding: 2px 6px; font-size: 12px; height: 28px;">
+                                    <i class="fas fa-trash-alt"></i> ลบ
+                                </button>
                             </div>
                             @endforeach
-                            <!-- ฟอร์มสำหรับการเพิ่มผลิตภัณฑ์ -->
-                            @if (!isset($info->id))
-                            <div class="product-entry mb-3 d-flex">
+
+                            <!-- ฟอร์มสำหรับการเพิ่มผลิตภัณฑ์ใหม่เมื่อไม่มีข้อมูล -->
+                            @if (!isset($info->id) && empty($oldProducts))
+                            <div class="product-entry mb-3 d-flex" id="product-0">
                                 <div class="mb-2 me-2" style="flex-basis: 150px;">
-                                    <label for="products[${index}][product_type]"
-                                        class="form-label">ประเภทผลิตภัณฑ์</label>
-                                    <select class="form-control" id="products[${index}][product_type]"
-                                        name="products[${index}][product_type]" required>
-                                        <option value="" disabled selected>เลือกประเภท</option>
-                                        <option value="วัสดุ">วัสดุ</option>
-                                        <option value="ครุภัณฑ์">ครุภัณฑ์</option>
+                                    <label for="products[0][product_type]" class="form-label">ประเภทผลิตภัณฑ์</label>
+                                    <select class="form-control" id="products[0][product_type]"
+                                        name="products[0][product_type]" required>
+                                        <option value="วัสดุ"
+                                            {{ old('products.0.product_type') == 'วัสดุ' ? 'selected' : '' }}>วัสดุ
+                                        </option>
+                                        <option value="ครุภัณฑ์"
+                                            {{ old('products.0.product_type') == 'ครุภัณฑ์' ? 'selected' : '' }}>
+                                            ครุภัณฑ์</option>
                                     </select>
                                 </div>
                                 <div class="flex-grow-1 mb-2 me-2">
-                                    <label for="products[${index}][product_name]"
-                                        class="form-label">ชื่อผลิตภัณฑ์</label>
-                                    <input type="text" class="form-control" id="products[${index}][product_name]"
-                                        name="products[${index}][product_name]" placeholder="ชื่อผลิตภัณฑ์" required>
+                                    <label for="products[0][product_name]" class="form-label">ชื่อผลิตภัณฑ์</label>
+                                    <input type="text" class="form-control" id="products[0][product_name]"
+                                        name="products[0][product_name]" placeholder="ชื่อผลิตภัณฑ์"
+                                        value="{{ old('products.0.product_name') }}" required>
                                 </div>
                                 <div class="mb-2 me-2" style="flex-basis: 150px;">
-                                    <label for="products[${index}][quantity]" class="form-label">จำนวน</label>
-                                    <input type="number" class="form-control" id="products[${index}][quantity]"
-                                        name="products[${index}][quantity]" placeholder="จำนวน" required>
+                                    <label for="products[0][quantity]" class="form-label">จำนวน</label>
+                                    <input type="number" class="form-control" id="products[0][quantity]"
+                                        name="products[0][quantity]" placeholder="จำนวน"
+                                        value="{{ old('products.0.quantity') }}" required>
                                 </div>
                                 <div class="mb-2 me-2" style="flex-basis: 150px;">
-                                    <label for="products[${index}][unit]" class="form-label">หน่วย</label>
-                                    <input type="text" class="form-control" id="products[${index}][unit]"
-                                        name="products[${index}][unit]" placeholder="หน่วย" required>
+                                    <label for="products[0][unit]" class="form-label">หน่วย</label>
+                                    <input type="text" class="form-control" id="products[0][unit]"
+                                        name="products[0][unit]" placeholder="หน่วย"
+                                        value="{{ old('products.0.unit') }}" required>
                                 </div>
                                 <div class="mb-2" style="flex-basis: 150px;">
-                                    <label for="products[${index}][product_price]"
+                                    <label for="products[0][product_price]"
                                         class="form-label">ราคาผลิตภัณฑ์/หน่วย</label>
                                     <input type="text" class="form-control product-price"
-                                        id="products[${index}][product_price]" name="products[${index}][product_price]"
-                                        placeholder="ราคาผลิตภัณฑ์" required>
+                                        id="products[0][product_price]" name="products[0][product_price]"
+                                        placeholder="ราคาผลิตภัณฑ์" value="{{ old('products.0.product_price') }}"
+                                        required>
                                 </div>
+                                <button type="button" class="btn btn-danger btn-sm remove-product" data-id="product-0" style="margin-left: 10px; padding: 2px 6px; font-size: 12px; height: 28px;">
+                                    <i class="fas fa-trash-alt"></i> ลบ
+                                </button>
+
                             </div>
                             @endif
                         </div>
+
                         <button type="button" class="btn btn-secondary" onclick="addProduct()">เพิ่มผลิตภัณฑ์</button>
-                        <br></br>
+                        <br><br>
+
                         <div class="mb-2">
                             <label class="form-label">รวมราคาทั้งหมด</label>
                             <input type="text" class="form-control" id="total-price" placeholder="รวมราคาทั้งหมด"
@@ -210,6 +211,7 @@
                     </div>
                 </div>
             </div>
+
             <script>
             document.addEventListener('DOMContentLoaded', function() {
                 // ฟังก์ชันสำหรับจัดรูปแบบตัวเลขเป็นค่าเงิน
@@ -243,19 +245,6 @@
                     document.getElementById('total-price').value = formatCurrency(totalPrice);
                 }
 
-                // ฟังก์ชันเปลี่ยนประเภทผลิตภัณฑ์อัตโนมัติเมื่อราคาต่อชิ้นเกิน 5000
-                function autoChangeProductType(entry) {
-                    const productPrice = parseFloat(unformatCurrency(entry.querySelector(
-                        'input[name$="[product_price]"]').value)) || 0;
-
-                    // ถ้าราคาต่อชิ้นเกิน 5000 บาท ให้เปลี่ยนเป็น "ครุภัณฑ์"
-                    if (productPrice > 5000) {
-                        entry.querySelector('select[name$="[product_type]"]').value = 'ครุภัณฑ์';
-                    } else {
-                        entry.querySelector('select[name$="[product_type]"]').value = 'วัสดุ';
-                    }
-                }
-
                 // เพิ่ม event listeners ให้กับฟิลด์ที่อาจมีการเปลี่ยนแปลง
                 function addEventListeners() {
                     document.querySelectorAll('.product-price').forEach(input => {
@@ -268,14 +257,23 @@
 
                             // คำนวณรวมราคาทั้งหมด
                             calculateTotalPrice();
-
-                            // เปลี่ยนประเภทผลิตภัณฑ์อัตโนมัติหากราคาต่อชิ้นเกิน 5000
-                            autoChangeProductType(entry);
                         });
                     });
 
                     document.querySelectorAll('input[name$="[quantity]"]').forEach(input => {
                         input.addEventListener('input', calculateTotalPrice);
+                    });
+
+                    // ปุ่มลบผลิตภัณฑ์
+                    document.querySelectorAll('.remove-product').forEach(button => {
+                        button.addEventListener('click', function() {
+                            const productId = this.getAttribute('data-id');
+                            const productElement = document.getElementById(productId);
+                            if (productElement) {
+                                productElement.remove();
+                                calculateTotalPrice(); // คำนวณราคาทั้งหมดใหม่หลังจากลบผลิตภัณฑ์
+                            }
+                        });
                     });
                 }
 
@@ -283,36 +281,41 @@
                 calculateTotalPrice();
                 addEventListeners();
 
+                // ฟังก์ชันสำหรับเพิ่มผลิตภัณฑ์ใหม่
                 window.addProduct = function() {
                     const container = document.getElementById('products-container');
                     const index = container.children.length;
+
                     const template = `
-                <div class="product-entry mb-3 d-flex">
-                    <div class="mb-2 me-2" style="flex-basis: 150px;">
-                        <label for="products[${index}][product_type]" class="form-label">ประเภทผลิตภัณฑ์</label>
-                        <select class="form-control" id="products[${index}][product_type]" name="products[${index}][product_type]" required>
-                            <option value="วัสดุ" selected>วัสดุ</option>
-                            <option value="ครุภัณฑ์">ครุภัณฑ์</option>
-                        </select>
-                    </div>
-                    <div class="flex-grow-1 mb-2 me-2">
-                        <label for="products[${index}][product_name]" class="form-label">ชื่อผลิตภัณฑ์</label>
-                        <input type="text" class="form-control" id="products[${index}][product_name]" name="products[${index}][product_name]" placeholder="ชื่อผลิตภัณฑ์" required>
-                    </div>
-                    <div class="mb-2 me-2" style="flex-basis: 150px;">
-                        <label for="products[${index}][quantity]" class="form-label">จำนวน</label>
-                        <input type="number" class="form-control" id="products[${index}][quantity]" name="products[${index}][quantity]" placeholder="จำนวน" required>
-                    </div>
-                    <div class="mb-2 me-2" style="flex-basis: 150px;">
-                        <label for="products[${index}][unit]" class="form-label">หน่วย</label>
-                        <input type="text" class="form-control" id="products[${index}][unit]" name="products[${index}][unit]" placeholder="หน่วย" required>
-                    </div>
-                    <div class="mb-2" style="flex-basis: 150px;">
-                        <label for="products[${index}][product_price]" class="form-label">ราคาผลิตภัณฑ์/หน่วย</label>
-                        <input type="text" class="form-control product-price" id="products[${index}][product_price]" name="products[${index}][product_price]" placeholder="ราคาผลิตภัณฑ์" required>
-                    </div>
-                </div>
-            `;
+        <div class="product-entry mb-3 d-flex" id="product-${index}">
+            <div class="mb-2 me-2" style="flex-basis: 150px;">
+                <label for="products[${index}][product_type]" class="form-label">ประเภทผลิตภัณฑ์</label>
+                <select class="form-control" id="products[${index}][product_type]" name="products[${index}][product_type]" required>
+                    <option value="วัสดุ">วัสดุ</option>
+                    <option value="ครุภัณฑ์">ครุภัณฑ์</option>
+                </select>
+            </div>
+            <div class="flex-grow-1 mb-2 me-2">
+                <label for="products[${index}][product_name]" class="form-label">ชื่อผลิตภัณฑ์</label>
+                <input type="text" class="form-control" id="products[${index}][product_name]" name="products[${index}][product_name]" placeholder="ชื่อผลิตภัณฑ์" required>
+            </div>
+            <div class="mb-2 me-2" style="flex-basis: 150px;">
+                <label for="products[${index}][quantity]" class="form-label">จำนวน</label>
+                <input type="number" class="form-control" id="products[${index}][quantity]" name="products[${index}][quantity]" placeholder="จำนวน" required>
+            </div>
+            <div class="mb-2 me-2" style="flex-basis: 150px;">
+                <label for="products[${index}][unit]" class="form-label">หน่วย</label>
+                <input type="text" class="form-control" id="products[${index}][unit]" name="products[${index}][unit]" placeholder="หน่วย" required>
+            </div>
+            <div class="mb-2" style="flex-basis: 150px;">
+                <label for="products[${index}][product_price]" class="form-label">ราคาผลิตภัณฑ์/หน่วย</label>
+                <input type="text" class="form-control product-price" id="products[${index}][product_price]" name="products[${index}][product_price]" placeholder="ราคาผลิตภัณฑ์" required>
+            </div>
+            <button type="button" class="btn btn-danger btn-sm remove-product" data-id="product-${index}" style="margin-left: 10px; padding: 2px 6px; font-size: 12px; height: 28px;">
+                <i class="fas fa-trash-alt"></i> ลบ
+            </button>
+        </div>
+        `;
 
                     container.insertAdjacentHTML('beforeend', template);
 
@@ -371,7 +374,8 @@
                                         id="sellers[{{ $loop->index }}][taxpayer_number]"
                                         name="sellers[{{ $loop->index }}][taxpayer_number]"
                                         placeholder="หมายเลขผู้เสียภาษี"
-                                        value="{{ old('sellers.' . $loop->index . '.taxpayer_number', $seller->taxpayer_number) }}">
+                                        value="{{ old('sellers.' . $loop->index . '.taxpayer_number', $seller->taxpayer_number) }}"
+                                        maxlength="13" pattern="\d{13}" title="กรุณากรอกหมายเลขผู้เสียภาษี 13 หลัก">
                                 </div>
 
                                 <!-- เอกสารอ้างอิง -->
@@ -384,6 +388,22 @@
                                         placeholder="เอกสารอ้างอิง"
                                         value="{{ old('sellers.' . $loop->index . '.reference_documents', $seller->reference_documents) }}">
                                 </div>
+
+                                <!-- แสดงลิงก์ดาวน์โหลดไฟล์ PDF หากมี -->
+                                @if($seller->pdf_file)
+                                <div class="mb-2">
+                                    <label class="form-label">ไฟล์เอกสารอ้างอิงปัจจุบัน</label>
+                                    <br>
+                                    <a href="javascript:void(0)" class="btn btn-sm btn-danger"
+                                        onclick="showPdfPopup('{{ asset('storage/' . $seller->pdf_file) }}')">
+                                        <i class="fas fa-file-pdf"></i> ดูไฟล์เอกสารอ้างอิง
+                                    </a>
+                                    <input type="hidden" name="sellers[{{ $loop->index }}][pdf_file]"
+                                        value="{{ $seller->pdf_file }}">
+                                </div>
+                                @endif
+
+
                             </div>
                             @endforeach
 
@@ -396,29 +416,47 @@
                                         onchange="setSellerDetails(this, 'sellers[0][seller_name]', 'sellers[0][address]', 'sellers[0][taxpayer_number]')">
                                         <option value="">-- เลือกผู้ขาย --</option>
                                         @foreach ($allSellers as $availableSeller)
-                                        <option value="{{ $availableSeller->seller_name }}">
-                                            {{ $availableSeller->seller_name }}</option>
+                                        <option value="{{ $availableSeller->seller_name }}"
+                                            {{ old('sellers.0.seller_name') == $availableSeller->seller_name ? 'selected' : '' }}>
+                                            {{ $availableSeller->seller_name }}
+                                        </option>
                                         @endforeach
                                     </select>
                                     <input type="text" class="form-control mt-2" id="sellers[0][seller_name]"
-                                        name="sellers[0][seller_name]" placeholder="ชื่อผู้ขาย" required>
+                                        name="sellers[0][seller_name]" placeholder="ชื่อผู้ขาย"
+                                        value="{{ old('sellers.0.seller_name') }}" required>
                                 </div>
+
                                 <div class="mb-2">
                                     <label for="sellers[0][address]" class="form-label">ที่อยู่</label>
                                     <input type="text" class="form-control" id="sellers[0][address]"
-                                        name="sellers[0][address]" placeholder="ที่อยู่" required>
+                                        name="sellers[0][address]" placeholder="ที่อยู่"
+                                        value="{{ old('sellers.0.address') }}" required>
                                 </div>
+
                                 <div class="mb-2">
                                     <label for="sellers[0][taxpayer_number]"
                                         class="form-label">หมายเลขผู้เสียภาษี</label>
                                     <input type="text" class="form-control" id="sellers[0][taxpayer_number]"
-                                        name="sellers[0][taxpayer_number]" placeholder="หมายเลขผู้เสียภาษี" required>
+                                        name="sellers[0][taxpayer_number]" placeholder="หมายเลขผู้เสียภาษี 13 หลัก"
+                                        value="{{ old('sellers.0.taxpayer_number') }}" required maxlength="13"
+                                        pattern="\d{13}" title="กรุณากรอกหมายเลขผู้เสียภาษี 13 หลัก">
                                 </div>
+
                                 <div class="mb-2">
                                     <label for="sellers[0][reference_documents]"
                                         class="form-label">เอกสารอ้างอิง</label>
                                     <input type="text" class="form-control" id="sellers[0][reference_documents]"
-                                        name="sellers[0][reference_documents]" placeholder="เอกสารอ้างอิง" required>
+                                        name="sellers[0][reference_documents]" placeholder="เอกสารอ้างอิง"
+                                        value="{{ old('sellers.0.reference_documents') }}" required>
+                                </div>
+
+                                <!-- อัปโหลดไฟล์ PDF -->
+                                <div class="mb-2">
+                                    <label for="sellers[0][pdf_file]"
+                                        class="form-label">อัปโหลดไฟล์เอกสารอ้างอิง</label>
+                                    <input type="file" class="form-control" id="sellers[0][pdf_file]"
+                                        name="sellers[0][pdf_file]" accept="application/pdf">
                                 </div>
                             </div>
                             @endif
@@ -426,6 +464,7 @@
                     </div>
                 </div>
             </div>
+
             <script>
             function setSellerDetails(selectElement, nameInputId, addressInputId, taxpayerInputId) {
                 var selectedValue = selectElement.value;
@@ -440,6 +479,17 @@
                     taxpayerInput.value = "{{ $availableSeller->taxpayer_number }}";
                 }
                 @endforeach
+            }
+
+            function showPdfPopup(pdfUrl) {
+                Swal.fire({
+                    title: 'ไฟล์เอกสารอ้างอิง',
+                    html: `<iframe src="${pdfUrl}" style="width:100%; height:500px;"></iframe>`,
+                    width: '80%',
+                    showCloseButton: true,
+                    focusConfirm: false,
+                    confirmButtonText: 'ปิด'
+                });
             }
             </script>
 
@@ -502,20 +552,23 @@
                                         class="form-label">ชื่อผู้ลงนาม</label>
                                     <select class="form-select" id="committeemembers[0][member_name_select]"
                                         onchange="setNameAndPosition(this, 'committeemembers[0][member_name]', 'committeemembers[0][member_position]')">
-                                        <option value="">-- เลือกชื่อผู้ลงนาม --</option>
+                                        <option value="">-- เลือกผู้ลงนาม --</option>
                                         @foreach ($allCommitteeMembers as $availableMember)
-                                        <option value="{{ $availableMember->member_name }}">
+                                        <option value="{{ $availableMember->member_name }}"
+                                            {{ old('committeemembers.0.member_name') == $availableMember->member_name ? 'selected' : '' }}>
                                             {{ $availableMember->member_name }}
                                         </option>
                                         @endforeach
                                     </select>
                                     <input type="text" class="form-control mt-2" id="committeemembers[0][member_name]"
-                                        name="committeemembers[0][member_name]" placeholder="ชื่อผู้ลงนาม" required>
+                                        name="committeemembers[0][member_name]" placeholder="ชื่อผู้ลงนาม"
+                                        value="{{ old('committeemembers.0.member_name') }}" required>
                                 </div>
                                 <div class="flex-fill ms-2">
                                     <label for="committeemembers[0][member_position]" class="form-label">ตำแหน่ง</label>
                                     <input type="text" class="form-control" id="committeemembers[0][member_position]"
-                                        name="committeemembers[0][member_position]" placeholder="ตำแหน่ง" required>
+                                        name="committeemembers[0][member_position]" placeholder="ตำแหน่ง"
+                                        value="{{ old('committeemembers.0.member_position') }}" required>
                                 </div>
                             </div>
                             @endif
@@ -590,21 +643,25 @@
                                         onchange="setBidderNameAndPosition(this, 'bidders[0][bidder_name]', 'bidders[0][bidder_position]')">
                                         <option value="">-- เลือกเจ้าหน้าที่ --</option>
                                         @foreach ($allBidders as $availableBidder)
-                                        <option value="{{ $availableBidder->bidder_name }}">
+                                        <option value="{{ $availableBidder->bidder_name }}"
+                                            {{ old('bidders.0.bidder_name') == $availableBidder->bidder_name ? 'selected' : '' }}>
                                             {{ $availableBidder->bidder_name }}</option>
                                         @endforeach
                                     </select>
                                     <input type="text" class="form-control mt-2" id="bidders[0][bidder_name]"
-                                        name="bidders[0][bidder_name]" placeholder="ชื่อเจ้าหน้าที่" required>
+                                        name="bidders[0][bidder_name]" placeholder="ชื่อเจ้าหน้าที่"
+                                        value="{{ old('bidders.0.bidder_name') }}" required>
                                 </div>
                                 <div class="flex-fill mb-2 me-2">
                                     <label for="bidders[0][bidder_position]" class="form-label">ตำแหน่ง</label>
                                     <input type="text" class="form-control" id="bidders[0][bidder_position]"
-                                        name="bidders[0][bidder_position]" placeholder="ตำแหน่ง" required>
+                                        name="bidders[0][bidder_position]" placeholder="ตำแหน่ง"
+                                        value="{{ old('bidders.0.bidder_position') }}" required>
                                 </div>
                             </div>
                             @endif
-                            <!-- ฟอร์มสำหรับการเพิ่มผู้เสนอราคาใหม่ -->
+
+                            <!-- ฟอร์มสำหรับการเพิ่มผู้เสนอราคาใหม่ ลำดับที่ 2 -->
                             @if (!isset($info->id))
                             <div class="bidder-entry mb-3 d-flex flex-wrap">
                                 <div class="flex-fill mb-2 me-2">
@@ -613,17 +670,20 @@
                                         onchange="setBidderNameAndPosition(this, 'bidders[1][bidder_name]', 'bidders[1][bidder_position]')">
                                         <option value="">-- เลือกเจ้าหน้าที่ --</option>
                                         @foreach ($allBidders as $availableBidder)
-                                        <option value="{{ $availableBidder->bidder_name }}">
+                                        <option value="{{ $availableBidder->bidder_name }}"
+                                            {{ old('bidders.1.bidder_name') == $availableBidder->bidder_name ? 'selected' : '' }}>
                                             {{ $availableBidder->bidder_name }}</option>
                                         @endforeach
                                     </select>
                                     <input type="text" class="form-control mt-2" id="bidders[1][bidder_name]"
-                                        name="bidders[1][bidder_name]" placeholder="ชื่อเจ้าหน้าที่" required>
+                                        name="bidders[1][bidder_name]" placeholder="ชื่อเจ้าหน้าที่"
+                                        value="{{ old('bidders.1.bidder_name') }}" required>
                                 </div>
                                 <div class="flex-fill mb-2 me-2">
                                     <label for="bidders[1][bidder_position]" class="form-label">ตำแหน่ง</label>
                                     <input type="text" class="form-control" id="bidders[1][bidder_position]"
-                                        name="bidders[1][bidder_position]" placeholder="ตำแหน่ง" required>
+                                        name="bidders[1][bidder_position]" placeholder="ตำแหน่ง"
+                                        value="{{ old('bidders.1.bidder_position') }}" required>
                                 </div>
                             </div>
                             @endif
@@ -699,20 +759,25 @@
                                         onchange="setInspectorNameAndPosition(this, 'inspectors[0][inspector_name]', 'inspectors[0][inspector_position]')">
                                         <option value="">-- เลือกชื่อกรรมการ --</option>
                                         @foreach ($allInspectors as $availableInspector)
-                                        <option value="{{ $availableInspector->inspector_name }}">
-                                            {{ $availableInspector->inspector_name }}</option>
+                                        <option value="{{ $availableInspector->inspector_name }}"
+                                            {{ old('inspectors.0.inspector_name') == $availableInspector->inspector_name ? 'selected' : '' }}>
+                                            {{ $availableInspector->inspector_name }}
+                                        </option>
                                         @endforeach
                                     </select>
                                     <input type="text" class="form-control mt-2" id="inspectors[0][inspector_name]"
-                                        name="inspectors[0][inspector_name]" placeholder="ชื่อกรรมการ" required>
+                                        name="inspectors[0][inspector_name]" placeholder="ชื่อกรรมการ"
+                                        value="{{ old('inspectors.0.inspector_name') }}" required>
                                 </div>
                                 <div class="flex-fill mb-2 me-2">
                                     <label for="inspectors[0][inspector_position]" class="form-label">ตำแหน่ง</label>
                                     <input type="text" class="form-control" id="inspectors[0][inspector_position]"
-                                        name="inspectors[0][inspector_position]" placeholder="ตำแหน่ง" required>
+                                        name="inspectors[0][inspector_position]" placeholder="ตำแหน่ง"
+                                        value="{{ old('inspectors.0.inspector_position') }}" required>
                                 </div>
                             </div>
                             @endif
+
                             <!-- ฟอร์มสำหรับการเพิ่มผู้ตรวจสอบใหม่ -->
                             @if (!isset($info->id))
                             <div class="inspector-entry mb-3 d-flex flex-wrap">
@@ -720,22 +785,27 @@
                                     <label for="inspectors[1][inspector_name]" class="form-label">ชื่อกรรมการ</label>
                                     <select class="form-select" id="inspectors[1][inspector_name_select]"
                                         onchange="setInspectorNameAndPosition(this, 'inspectors[1][inspector_name]', 'inspectors[1][inspector_position]')">
-                                        <option value="">-- เลือกกรรมการ --</option>
+                                        <option value="">-- เลือกชื่อกรรมการ --</option>
                                         @foreach ($allInspectors as $availableInspector)
-                                        <option value="{{ $availableInspector->inspector_name }}">
-                                            {{ $availableInspector->inspector_name }}</option>
+                                        <option value="{{ $availableInspector->inspector_name }}"
+                                            {{ old('inspectors.1.inspector_name') == $availableInspector->inspector_name ? 'selected' : '' }}>
+                                            {{ $availableInspector->inspector_name }}
+                                        </option>
                                         @endforeach
                                     </select>
                                     <input type="text" class="form-control mt-2" id="inspectors[1][inspector_name]"
-                                        name="inspectors[1][inspector_name]" placeholder="ชื่อกรรมการ" required>
+                                        name="inspectors[1][inspector_name]" placeholder="ชื่อกรรมการ"
+                                        value="{{ old('inspectors.1.inspector_name') }}" required>
                                 </div>
                                 <div class="flex-fill mb-2 me-2">
                                     <label for="inspectors[1][inspector_position]" class="form-label">ตำแหน่ง</label>
                                     <input type="text" class="form-control" id="inspectors[1][inspector_position]"
-                                        name="inspectors[1][inspector_position]" placeholder="ตำแหน่ง" required>
+                                        name="inspectors[1][inspector_position]" placeholder="ตำแหน่ง"
+                                        value="{{ old('inspectors.1.inspector_position') }}" required>
                                 </div>
                             </div>
                             @endif
+
                             <!-- ฟอร์มสำหรับการเพิ่มผู้ตรวจสอบใหม่ -->
                             @if (!isset($info->id))
                             <div class="inspector-entry mb-3 d-flex flex-wrap">
@@ -745,20 +815,25 @@
                                         onchange="setInspectorNameAndPosition(this, 'inspectors[2][inspector_name]', 'inspectors[2][inspector_position]')">
                                         <option value="">-- เลือกชื่อกรรมการ --</option>
                                         @foreach ($allInspectors as $availableInspector)
-                                        <option value="{{ $availableInspector->inspector_name }}">
-                                            {{ $availableInspector->inspector_name }}</option>
+                                        <option value="{{ $availableInspector->inspector_name }}"
+                                            {{ old('inspectors.2.inspector_name') == $availableInspector->inspector_name ? 'selected' : '' }}>
+                                            {{ $availableInspector->inspector_name }}
+                                        </option>
                                         @endforeach
                                     </select>
                                     <input type="text" class="form-control mt-2" id="inspectors[2][inspector_name]"
-                                        name="inspectors[2][inspector_name]" placeholder="ชื่อกรรมการ" required>
+                                        name="inspectors[2][inspector_name]" placeholder="ชื่อกรรมการ"
+                                        value="{{ old('inspectors.2.inspector_name') }}" required>
                                 </div>
                                 <div class="flex-fill mb-2 me-2">
                                     <label for="inspectors[2][inspector_position]" class="form-label">ตำแหน่ง</label>
                                     <input type="text" class="form-control" id="inspectors[2][inspector_position]"
-                                        name="inspectors[2][inspector_position]" placeholder="ตำแหน่ง" required>
+                                        name="inspectors[2][inspector_position]" placeholder="ตำแหน่ง"
+                                        value="{{ old('inspectors.2.inspector_position') }}" required>
                                 </div>
                             </div>
                             @endif
+
                         </div>
                     </div>
                 </div>
@@ -801,11 +876,11 @@
 
                             <div class="mb-2">
                                 <label for="mores[{{ $index }}][request_documents]"
-                                    class="form-label">เอกสารขออนุมัติ</label>
+                                    class="form-label">ติดต่อขอรับเอกสาร</label>
                                 <input type="text" class="form-control" id="mores[{{ $index }}][request_documents]"
                                     name="mores[{{ $index }}][request_documents]"
                                     value="{{ old('mores.'.$index.'.request_documents', $more->request_documents ?? '') }}"
-                                    placeholder="เอกสารขออนุมัติ" required>
+                                    placeholder="ติดต่อขอรับเอกสาร" required>
                             </div>
 
                             <div class="mb-2">
@@ -840,40 +915,47 @@
                         <!-- แสดง input แบบฟอร์มว่าง ๆ หากไม่มีข้อมูล more -->
                         <div class="more-entry mb-3">
                             <input type="hidden" name="mores[0][id]" value="">
+
                             <div class="mb-2">
                                 <label for="mores[0][price_list]" class="form-label">ใบเสนอราคา</label>
                                 <input type="text" class="form-control" id="mores[0][price_list]"
-                                    name="mores[0][price_list]" placeholder="ใบเสนอราคา" required>
+                                    name="mores[0][price_list]" placeholder="ใบเสนอราคา"
+                                    value="{{ old('mores.0.price_list') }}" required>
                             </div>
 
                             <div class="mb-2">
-                                <label for="mores[0][request_documents]" class="form-label">เอกสารขออนุมัติ</label>
+                                <label for="mores[0][request_documents]" class="form-label">ติดต่อขอรับเอกสาร</label>
                                 <input type="text" class="form-control" id="mores[0][request_documents]"
-                                    name="mores[0][request_documents]" placeholder="เอกสารขออนุมัติ" required>
+                                    name="mores[0][request_documents]" placeholder="ติดต่อขอรับเอกสาร"
+                                    value="{{ old('mores.0.request_documents') }}" required>
                             </div>
 
                             <div class="mb-2">
                                 <label for="mores[0][middle_price_first]" class="form-label">แหล่งที่มาของราคากลาง
                                     1</label>
                                 <input type="text" class="form-control" id="mores[0][middle_price_first]"
-                                    name="mores[0][middle_price_first]" placeholder="แหล่งที่มาของราคากลาง 1" required>
+                                    name="mores[0][middle_price_first]" placeholder="แหล่งที่มาของราคากลาง 1"
+                                    value="{{ old('mores.0.middle_price_first') }}" required>
                             </div>
 
                             <div class="mb-2">
                                 <label for="mores[0][middle_price_second]" class="form-label">แหล่งที่มาของราคากลาง
                                     2</label>
                                 <input type="text" class="form-control" id="mores[0][middle_price_second]"
-                                    name="mores[0][middle_price_second]" placeholder="แหล่งที่มาของราคากลาง 2" required>
+                                    name="mores[0][middle_price_second]" placeholder="แหล่งที่มาของราคากลาง 2"
+                                    value="{{ old('mores.0.middle_price_second') }}" required>
                             </div>
 
                             <div class="mb-2">
                                 <label for="mores[0][middle_price_third]" class="form-label">แหล่งที่มาของราคากลาง
                                     3</label>
                                 <input type="text" class="form-control" id="mores[0][middle_price_third]"
-                                    name="mores[0][middle_price_third]" placeholder="แหล่งที่มาของราคากลาง 3" required>
+                                    name="mores[0][middle_price_third]" placeholder="แหล่งที่มาของราคากลาง 3"
+                                    value="{{ old('mores.0.middle_price_third') }}" required>
                             </div>
                         </div>
                         @endif
+
                     </div>
                 </div>
             </div>
@@ -910,8 +992,7 @@ document.addEventListener('DOMContentLoaded', function() {
     Swal.fire({
         icon: 'success',
         title: 'สำเร็จ!',
-        text: '{{ session('
-        success ') }}',
+        text: '{{ session('success') }}',  // ใช้ 'success' โดยไม่มีเว้นวรรค
         timer: 3000,
         showConfirmButton: false
     });
@@ -919,8 +1000,7 @@ document.addEventListener('DOMContentLoaded', function() {
     Swal.fire({
         icon: 'error',
         title: 'เกิดข้อผิดพลาด!',
-        text: '{{ session('
-        error ') }}',
+        text: '{{ session('error') }}',  // ใช้ 'error' โดยไม่มีเว้นวรรค
         timer: 3000,
         showConfirmButton: false
     });
