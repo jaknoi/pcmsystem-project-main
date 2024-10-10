@@ -98,10 +98,10 @@
 
             </div>
 
-            <!-- Products Section -->
-            <div class="card mb-4">
+             <!-- Products Section -->
+             <div class="card mb-4">
                 <h3 class="card-header" style="background-color: #092174;">รายละเอียด</h3>
-                <div class="card-body" style="background-color: #6db8ff;">
+                <div class="card-body" style="background-color: #98BCFB;">
                     <div class="mb-3">
                         <div id="products-container">
                             <!-- แสดงผลิตภัณฑ์ที่เคยกรอกไว้หากเกิดข้อผิดพลาด หรือดึงข้อมูลจากฐานข้อมูลถ้ามี -->
@@ -157,7 +157,8 @@
                                         placeholder="ราคาผลิตภัณฑ์" required>
                                 </div>
                                 <button type="button" class="btn btn-danger btn-sm remove-product"
-                                    data-id="product-{{ $index }}" style="margin-left: 10px; padding: 2px 6px; font-size: 12px; height: 28px;">
+                                    data-id="product-{{ $index }}"
+                                    style="margin-left: 10px; padding: 2px 6px; font-size: 12px; height: 28px;">
                                     <i class="fas fa-trash-alt"></i> ลบ
                                 </button>
                             </div>
@@ -204,7 +205,8 @@
                                         placeholder="ราคาผลิตภัณฑ์" value="{{ old('products.0.product_price') }}"
                                         required>
                                 </div>
-                                <button type="button" class="btn btn-danger btn-sm remove-product" data-id="product-0" style="margin-left: 10px; padding: 2px 6px; font-size: 12px; height: 28px;">
+                                <button type="button" class="btn btn-danger btn-sm remove-product" data-id="product-0"
+                                    style="margin-left: 10px; padding: 2px 6px; font-size: 12px; height: 28px;">
                                     <i class="fas fa-trash-alt"></i> ลบ
                                 </button>
 
@@ -522,7 +524,7 @@
             <!-- Committee Members Section -->
             <div class="card mb-4">
                 <h3 class="card-header" style="background-color: #092174;">ผู้ลงนาม</h3>
-                <div class="card-body" style="background-color: #6db8ff;">
+                <div class="card-body" style="background-color: #98BCFB;">
                     <div class="mb-3">
                         <div id="committee-container">
                             @foreach ($info->committeemembers as $committee_member)
@@ -627,34 +629,38 @@
                             <div class="bidder-entry mb-3">
                                 <input type="hidden" name="bidders[{{ $loop->index }}][id]" value="{{ $bidder->id }}">
 
-                                <!-- ชื่อผู้เสนอราคาใน Dropdown -->
-                                <div class="mb-2">
-                                    <label for="bidders[{{ $loop->index }}][bidder_name]"
-                                        class="form-label">ชื่อเจ้าหน้าที่</label>
-                                    <select class="form-select" id="bidders[{{ $loop->index }}][bidder_name_select]"
-                                        onchange="setBidderNameAndPosition(this, 'bidders[{{ $loop->index }}][bidder_name]', 'bidders[{{ $loop->index }}][bidder_position]')">
-                                        <option value="">-- เลือกเจ้าหน้าที่ --</option>
-                                        @foreach ($allBidders as $availableBidder)
-                                        <option value="{{ $availableBidder->bidder_name }}" @if ($bidder->bidder_name ==
-                                            $availableBidder->bidder_name) selected @endif>
-                                            {{ $availableBidder->bidder_name }}
-                                        </option>
-                                        @endforeach
-                                    </select>
-                                    <input type="text" class="form-control mt-2"
-                                        id="bidders[{{ $loop->index }}][bidder_name]"
-                                        name="bidders[{{ $loop->index }}][bidder_name]" placeholder="ชื่อเจ้าหน้าที่"
-                                        value="{{ old('bidders.' . $loop->index . '.bidder_name', $bidder->bidder_name) }}">
-                                </div>
+                                <!-- ชื่อผู้เสนอราคาใน Dropdown และ ตำแหน่งผู้เสนอราคาในบรรทัดเดียวกัน -->
+                                <div class="row">
+                                    <!-- ชื่อผู้เสนอราคาใน Dropdown -->
+                                    <div class="col-md-6 mb-2">
+                                        <label for="bidders[{{ $loop->index }}][bidder_name]"
+                                            class="form-label">ชื่อเจ้าหน้าที่</label>
+                                        <select class="form-select" id="bidders[{{ $loop->index }}][bidder_name_select]"
+                                            onchange="setBidderNameAndPosition(this, 'bidders[{{ $loop->index }}][bidder_name]', 'bidders[{{ $loop->index }}][bidder_position]')">
+                                            <option value="">-- เลือกเจ้าหน้าที่ --</option>
+                                            @foreach ($allBidders as $availableBidder)
+                                            <option value="{{ $availableBidder->bidder_name }}" @if ($bidder->
+                                                bidder_name == $availableBidder->bidder_name) selected @endif>
+                                                {{ $availableBidder->bidder_name }}
+                                            </option>
+                                            @endforeach
+                                        </select>
+                                        <input type="text" class="form-control mt-2"
+                                            id="bidders[{{ $loop->index }}][bidder_name]"
+                                            name="bidders[{{ $loop->index }}][bidder_name]"
+                                            placeholder="ชื่อเจ้าหน้าที่"
+                                            value="{{ old('bidders.' . $loop->index . '.bidder_name', $bidder->bidder_name) }}">
+                                    </div>
 
-                                <!-- ตำแหน่งผู้เสนอราคา -->
-                                <div class="mb-2">
-                                    <label for="bidders[{{ $loop->index }}][bidder_position]"
-                                        class="form-label">ตำแหน่ง</label>
-                                    <input type="text" class="form-control"
-                                        id="bidders[{{ $loop->index }}][bidder_position]"
-                                        name="bidders[{{ $loop->index }}][bidder_position]" placeholder="ตำแหน่ง"
-                                        value="{{ old('bidders.' . $loop->index . '.bidder_position', $bidder->bidder_position) }}">
+                                    <!-- ตำแหน่งผู้เสนอราคา -->
+                                    <div class="col-md-6 mb-2">
+                                        <label for="bidders[{{ $loop->index }}][bidder_position]"
+                                            class="form-label">ตำแหน่ง</label>
+                                        <input type="text" class="form-control"
+                                            id="bidders[{{ $loop->index }}][bidder_position]"
+                                            name="bidders[{{ $loop->index }}][bidder_position]" placeholder="ตำแหน่ง"
+                                            value="{{ old('bidders.' . $loop->index . '.bidder_position', $bidder->bidder_position) }}">
+                                    </div>
                                 </div>
                             </div>
                             @endforeach
@@ -736,7 +742,7 @@
             <!-- Inspectors Section -->
             <div class="card mb-4">
                 <h3 class="card-header" style="background-color: #092174;">ผู้ตรวจรับพัสดุ</h3>
-                <div class="card-body" style="background-color: #6db8ff;">
+                <div class="card-body" style="background-color: #98BCFB;">
                     <div class="mb-3">
                         <div id="inspectors-container">
                             @foreach ($info->inspectors as $inspector)
@@ -744,39 +750,44 @@
                                 <input type="hidden" name="inspectors[{{ $loop->index }}][id]"
                                     value="{{ $inspector->id }}">
 
-                                <!-- ชื่อผู้ตรวจสอบใน Dropdown -->
-                                <div class="mb-2">
-                                    <label for="inspectors[{{ $loop->index }}][inspector_name]"
-                                        class="form-label">ชื่อผู้ตรวจรับพัสดุ</label>
-                                    <select class="form-select"
-                                        id="inspectors[{{ $loop->index }}][inspector_name_select]"
-                                        onchange="setInspectorNameAndPosition(this, 'inspectors[{{ $loop->index }}][inspector_name]', 'inspectors[{{ $loop->index }}][inspector_position]')">
-                                        <option value="">-- เลือกผู้ตรวจรับพัสดุ --</option>
-                                        @foreach ($allInspectors as $availableInspector)
-                                        <option value="{{ $availableInspector->inspector_name }}" @if ($inspector->
-                                            inspector_name == $availableInspector->inspector_name) selected @endif>
-                                            {{ $availableInspector->inspector_name }}
-                                        </option>
-                                        @endforeach
-                                    </select>
-                                    <input type="text" class="form-control mt-2"
-                                        id="inspectors[{{ $loop->index }}][inspector_name]"
-                                        name="inspectors[{{ $loop->index }}][inspector_name]"
-                                        placeholder="ชื่อผู้ตรวจรับพัสดุ"
-                                        value="{{ old('inspectors.' . $loop->index . '.inspector_name', $inspector->inspector_name) }}">
-                                </div>
+                                <!-- ชื่อผู้ตรวจสอบและตำแหน่งในบรรทัดเดียวกัน -->
+                                <div class="row">
+                                    <!-- Dropdown สำหรับเลือกชื่อผู้ตรวจสอบ -->
+                                    <div class="col-md-6 mb-2">
+                                        <label for="inspectors[{{ $loop->index }}][inspector_name]"
+                                            class="form-label">ชื่อผู้ตรวจรับพัสดุ</label>
+                                        <select class="form-select"
+                                            id="inspectors[{{ $loop->index }}][inspector_name_select]"
+                                            onchange="setInspectorNameAndPosition(this, 'inspectors[{{ $loop->index }}][inspector_name]', 'inspectors[{{ $loop->index }}][inspector_position]')">
+                                            <option value="">-- เลือกผู้ตรวจรับพัสดุ --</option>
+                                            @foreach ($allInspectors as $availableInspector)
+                                            <option value="{{ $availableInspector->inspector_name }}" @if ($inspector->
+                                                inspector_name == $availableInspector->inspector_name) selected @endif>
+                                                {{ $availableInspector->inspector_name }}
+                                            </option>
+                                            @endforeach
+                                        </select>
+                                        <input type="text" class="form-control mt-2"
+                                            id="inspectors[{{ $loop->index }}][inspector_name]"
+                                            name="inspectors[{{ $loop->index }}][inspector_name]"
+                                            placeholder="ชื่อผู้ตรวจรับพัสดุ"
+                                            value="{{ old('inspectors.' . $loop->index . '.inspector_name', $inspector->inspector_name) }}">
+                                    </div>
 
-                                <!-- ตำแหน่งผู้ตรวจสอบ -->
-                                <div class="mb-2">
-                                    <label for="inspectors[{{ $loop->index }}][inspector_position]"
-                                        class="form-label">ตำแหน่ง</label>
-                                    <input type="text" class="form-control"
-                                        id="inspectors[{{ $loop->index }}][inspector_position]"
-                                        name="inspectors[{{ $loop->index }}][inspector_position]" placeholder="ตำแหน่ง"
-                                        value="{{ old('inspectors.' . $loop->index . '.inspector_position', $inspector->inspector_position) }}">
+                                    <!-- Input สำหรับกรอกตำแหน่ง -->
+                                    <div class="col-md-6 mb-2">
+                                        <label for="inspectors[{{ $loop->index }}][inspector_position]"
+                                            class="form-label">ตำแหน่ง</label>
+                                        <input type="text" class="form-control"
+                                            id="inspectors[{{ $loop->index }}][inspector_position]"
+                                            name="inspectors[{{ $loop->index }}][inspector_position]"
+                                            placeholder="ตำแหน่ง"
+                                            value="{{ old('inspectors.' . $loop->index . '.inspector_position', $inspector->inspector_position) }}">
+                                    </div>
                                 </div>
                             </div>
                             @endforeach
+
 
                             <!-- ฟอร์มสำหรับการเพิ่มผู้ตรวจสอบใหม่ -->
                             @if (!isset($info->id))
@@ -853,13 +864,13 @@
 
 <!-- เพิ่มแจ้งเตือนด้วย SweetAlert2 -->
 <script>
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     // แสดงการแจ้งเตือนจากเซิร์ฟเวอร์
     @if(session('success'))
     Swal.fire({
         icon: 'success',
         title: 'สำเร็จ!',
-        text: '{{ session('success') }}',  // ใช้ 'success' โดยไม่มีเว้นวรรค
+        text: '{{ session('success') }}',
         timer: 3000,
         showConfirmButton: false
     });
@@ -867,13 +878,36 @@ document.addEventListener('DOMContentLoaded', function() {
     Swal.fire({
         icon: 'error',
         title: 'เกิดข้อผิดพลาด!',
-        text: '{{ session('error') }}',  // ใช้ 'error' โดยไม่มีเว้นวรรค
-        timer: 3000,
-        showConfirmButton: false
+        text: '{{ session('error') }}',
+        showConfirmButton: true
     });
     @endif
+
+    // แทนที่การส่งฟอร์มด้วย SweetAlert2
+    const form = document.querySelector('form');
+    form.addEventListener('submit', function (e) {
+        e.preventDefault(); // ป้องกันการส่งฟอร์มทันที
+
+        // แสดงการแจ้งเตือนให้ผู้ใช้ยืนยันก่อนบันทึก
+        Swal.fire({
+            title: 'ยืนยันการบันทึก',
+            text: "คุณต้องการบันทึกข้อมูลนี้หรือไม่?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'ยืนยัน',
+            cancelButtonText: 'ยกเลิก'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // เมื่อผู้ใช้กดยืนยัน ส่งฟอร์มต่อไป
+                form.submit();
+            }
+        });
+    });
 });
 </script>
+
 
 
 

@@ -156,12 +156,10 @@
 document.addEventListener('DOMContentLoaded', function() {
     // ตรวจสอบว่ามี session 'success' หรือไม่
     @if(session('success'))
-
     Swal.fire({
         icon: 'success',
         title: 'สำเร็จ!',
-        text: '{{ session('
-        success ') }}',
+        text: '{{ session('success') }}',  // ใช้ 'success' โดยไม่มีเว้นวรรค
         timer: 3000,
         showConfirmButton: false
     });

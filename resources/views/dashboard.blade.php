@@ -207,26 +207,25 @@
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        // Chart for procurement data
-           // Chart for procurement data
+    // Chart for procurement data
     var ctx1 = document.getElementById('purchaseChart').getContext('2d');
     var purchaseChart = new Chart(ctx1, {
-        type: 'bar', // Changed to 'bar'
+        type: 'bar',
         data: {
-            labels: @json($months),
+            labels: @json($months), // เรียงเดือนตามปกติจากมกราคมถึงธันวาคม
             datasets: [
                 {
                     label: 'จัดซื้อ',
                     data: @json($purchaseData),
                     borderColor: 'rgba(231, 76, 60, 1)',
-                    backgroundColor: 'rgba(231, 76, 60, 0.7)', // Adjust opacity for better bar visibility
+                    backgroundColor: 'rgba(231, 76, 60, 0.7)',
                     fill: true
                 },
                 {
                     label: 'จัดจ้าง',
                     data: @json($hiringData),
                     borderColor: 'rgba(52, 152, 219, 1)',
-                    backgroundColor: 'rgba(52, 152, 219, 0.7)', // Adjust opacity for better bar visibility
+                    backgroundColor: 'rgba(52, 152, 219, 0.7)',
                     fill: true
                 }
             ]
@@ -236,27 +235,27 @@
     // Chart for materials and equipment data
     var ctx2 = document.getElementById('materialChart').getContext('2d');
     var materialChart = new Chart(ctx2, {
-        type: 'bar', // Changed to 'bar'
+        type: 'bar',
         data: {
-            labels: @json($months),
+            labels: @json($months), // เรียงเดือนตามปกติจากมกราคมถึงธันวาคม
             datasets: [
                 {
                     label: 'วัสดุ',
                     data: @json(array_values($materialData)),
                     borderColor: 'rgba(46, 204, 113, 1)',
-                    backgroundColor: 'rgba(46, 204, 113, 0.7)', // Adjust opacity for better bar visibility
+                    backgroundColor: 'rgba(46, 204, 113, 0.7)',
                     fill: true
                 },
                 {
                     label: 'ครุภัณฑ์',
                     data: @json(array_values($equipmentData)),
                     borderColor: 'rgba(241, 196, 15, 1)',
-                    backgroundColor: 'rgba(241, 196, 15, 0.7)', // Adjust opacity for better bar visibility
+                    backgroundColor: 'rgba(241, 196, 15, 0.7)',
                     fill: true
                 }
             ]
         }
     });
+</script>
 
-    </script>
 @endsection

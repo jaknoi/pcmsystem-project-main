@@ -52,35 +52,27 @@
                     </a>
                 </div>
                 <div class="col-6 col-md-3 mb-3">
-                    <a href="{{ route('bidders_sellers.index') }}" class="btn-img">
-                        <img src="{{ asset('images/addbs.png') }}" alt="ADD BS">
+                    <a href="{{ route('page.list') }}" class="btn-img">
+                        <img src="{{ asset('images/listpcm.png') }}" alt="List PCM">
                     </a>
                 </div>
+                
                 <div class="col-6 col-md-3 mb-3">
                     <a href="{{ route('page.listpdf') }}" class="btn-img">
                         <img src="{{ asset('images/downloadpdf.png') }}" alt="Download PDF">
                     </a>
                 </div>
                 <div class="col-6 col-md-3 mb-3">
-                    <a class="btn-img no-hover">
-                        <img src="{{ asset('images/img2.png') }}" alt="Image 4">
+                    <a href="{{ url('/summary') }}" class="btn-img">
+                        <img src="{{ asset('images/sm.png') }}" alt="Image 9">
                     </a>
                 </div>
+                
             </div>
             <div class="row">
-                <div class="col-6 col-md-3 mb-3">
-                    <a class="btn-img no-hover">
-                        <img src="{{ asset('images/img3.png') }}" alt="Image 5">
-                    </a>
-                </div>
-                <div class="col-6 col-md-3 mb-3">
-                    <a href="{{ route('page.list') }}" class="btn-img">
-                        <img src="{{ asset('images/listpcm.png') }}" alt="List PCM">
-                    </a>
-                </div>
-                <div class="col-6 col-md-3 mb-3">
-                    <a class="btn-img no-hover">
-                        <img src="{{ asset('images/img4.png') }}" alt="Image 7">
+            <div class="col-6 col-md-3 mb-3">
+                    <a href="{{ route('bidders_sellers.index') }}" class="btn-img">
+                        <img src="{{ asset('images/addbs.png') }}" alt="ADD BS">
                     </a>
                 </div>
                 <div class="col-6 col-md-3 mb-3">
@@ -88,18 +80,7 @@
                         <img src="{{ asset('images/logfile.png') }}" alt="Log File">
                     </a>
                 </div>
-            </div>
-            <div class="row">
-                <div class="col-6 col-md-3 mb-3">
-                    <a href="{{ url('/summary') }}" class="btn-img">
-                        <img src="{{ asset('images/sm.png') }}" alt="Image 9">
-                    </a>
-                </div>
-                <div class="col-6 col-md-3 mb-3">
-                    <a class="btn-img no-hover">
-                        <img src="{{ asset('images/img5.png') }}" alt="Image 10">
-                    </a>
-                </div>
+                
                 <div class="col-6 col-md-3 mb-3">
                     <a href="{{ url('/dashboard') }}" class="btn-img">
                         <img src="{{ asset('images/dashboard.png') }}" alt="Dashboard">

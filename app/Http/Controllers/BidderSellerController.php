@@ -103,7 +103,7 @@ class BidderSellerController extends Controller
     // ลบผู้ขายทั้งหมดที่มีชื่อเดียวกับผู้ขายที่กำลังถูกลบ
     Seller::where('seller_name', $seller->seller_name)->delete();
 
-    return redirect()->route('bidders_sellers.index')->with('success', 'ลบข้อมูลผู้ขายที่มีชื่อซ้ำสำเร็จ!');
+    return redirect()->route('bidders_sellers.index')->with('success', 'ลบข้อมูลผู้ขายสำเร็จ!');
 }
 
     
@@ -131,7 +131,7 @@ class BidderSellerController extends Controller
     // ลบเจ้าหน้าที่ทั้งหมดที่มีชื่อเดียวกับเจ้าหน้าที่ที่กำลังถูกลบ
     Bidder::where('bidder_name', $bidder->bidder_name)->delete();
 
-    return redirect()->route('bidders_sellers.index')->with('success', 'ลบข้อมูลเจ้าหน้าที่ที่มีชื่อซ้ำสำเร็จ!');
+    return redirect()->route('bidders_sellers.index')->with('success', 'ลบข้อมูลเจ้าหน้าที่สำเร็จ!');
 }
 
     

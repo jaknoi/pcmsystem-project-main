@@ -79,19 +79,18 @@
 
         <!-- แจ้งเตือน SweetAlert2 -->
         <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            @if(session('success'))
+    document.addEventListener('DOMContentLoaded', function () {
+        @if(session('success'))
             Swal.fire({
                 icon: 'success',
                 title: 'สำเร็จ!',
-                text: '{{ session('
-                success ') }}',
+                text: '{{ session('success') }}',
                 timer: 3000,
                 showConfirmButton: false
             });
-            @endif
-        });
-        </script>
+        @endif
+    });
+</script>
 
     </div>
     <div class="card-footer d-flex justify-content-between">

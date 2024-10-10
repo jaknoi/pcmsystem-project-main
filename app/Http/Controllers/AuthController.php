@@ -267,7 +267,7 @@ public function showCreateFormk($id = null)
 
 
 
-    public function add(Request $request)
+public function add(Request $request)
 {
     $info = new Info();
     $response = $this->save($info, $request);
@@ -284,24 +284,59 @@ public function showCreateFormk($id = null)
         return redirect()->back()->withErrors($response['message'])->withInput();
     }
 
-    // คำนวณราคาสินค้ารวม
-    $totalPrice = 0;
-    foreach ($info->products as $product) {
-        $totalPrice += $product->quantity * $product->product_price;
+    // ดึงข้อมูลผลิตภัณฑ์จากฟอร์ม
+    $products = $request->input('products', []);
+    $newTotalPrice = 0;
+
+    // คำนวณรวมราคาผลิตภัณฑ์ใหม่จากฟอร์ม
+    if (is_array($products)) {
+        foreach ($products as $productData) {
+            if (is_array($productData)) {
+                // ลบเครื่องหมาย , ออกจาก product_price ก่อนทำการคำนวณ
+                $productPrice = floatval(str_replace(',', '', $productData['product_price'] ?? 0));
+                $quantity = intval($productData['quantity'] ?? 1);
+                $newTotalPrice += $quantity * $productPrice;
+            }
+        }
     }
 
-    $data['total_price'] = $totalPrice; // เพิ่มยอดรวมใน $data
+    // ตรวจสอบงบประมาณคงเหลือ
+    $budget = Budget::first();
+
+    if (!$budget) {
+        return redirect()->back()->with('error', 'ไม่พบงบประมาณในระบบ')->withInput();
+    }
+
+    // ดึงยอดรวมผลิตภัณฑ์เดิมที่บันทึกไว้แล้วในฐานข้อมูล
+    $oldTotalPrice = 0;
+    if ($info->products) {
+        foreach ($info->products as $existingProduct) {
+            $oldTotalPrice += $existingProduct->quantity * $existingProduct->product_price;
+        }
+    }
+
+    // คำนวณความแตกต่างของยอดเงินรวมระหว่างยอดใหม่กับยอดเดิม
+    $priceDifference = $newTotalPrice - $oldTotalPrice;
+
+    // ตรวจสอบว่างบประมาณเพียงพอสำหรับความแตกต่างของยอดเงินหรือไม่
+    if ($budget->remaining_amount < $priceDifference) {
+        return redirect()->back()->with('error', 'งบประมาณไม่เพียงพอสำหรับการเพิ่มยอดผลิตภัณฑ์')->withInput();
+    }
 
     // บันทึกกิจกรรมการสร้างข้อมูล
-History::create([
-    'user_id' => Auth::id(),
-    'activity' => 'สร้างเอกสารใหม่',
-    'details' => 'สร้างเอกสารใหม่ ID: ' . $info->id . ' /จำนวนเงินที่ใช้ไป: ' . number_format($totalPrice) . ' บาท',
-]);
+    History::create([
+        'user_id' => Auth::id(),
+        'activity' => 'สร้างเอกสารใหม่',
+        'details' => 'สร้างเอกสารใหม่ ID: ' . $info->id . ' /จำนวนเงินที่ใช้ไป: ' . number_format($newTotalPrice) . ' บาท',
+    ]);
 
+    // อัปเดตงบประมาณ
+    $budget->remaining_amount -= $priceDifference;
+    $budget->save();
 
     return redirect('/page')->with('success', 'ข้อมูลถูกบันทึกเรียบร้อยแล้ว');
 }
+
 
 
 
@@ -366,34 +401,44 @@ History::create([
             // ดึงข้อมูลผลิตภัณฑ์จากฟอร์ม
             $products = $request->input('products', []);
     
-            // คำนวณรวมราคาผลิตภัณฑ์ทั้งหมด
-            $totalPrice = 0;
-            if (is_array($products)) {
-                foreach ($products as $productData) {
-                    if (is_array($productData)) {
-                        // ลบเครื่องหมาย , ออกจาก product_price ก่อนทำการคำนวณ
-                        $productPrice = floatval(str_replace(',', '', $productData['product_price'] ?? 0));
-                        $quantity = intval($productData['quantity'] ?? 1); // กำหนดค่า quantity หากไม่มี
-                        $totalPrice += $quantity * $productPrice; // รวมราคาทั้งหมดของผลิตภัณฑ์
-                    }
+            // คำนวณรวมราคาผลิตภัณฑ์ใหม่จากฟอร์ม
+        $newTotalPrice = 0;
+        if (is_array($products)) {
+            foreach ($products as $productData) {
+                if (is_array($productData)) {
+                    // ลบเครื่องหมาย , ออกจาก product_price ก่อนทำการคำนวณ
+                    $productPrice = floatval(str_replace(',', '', $productData['product_price'] ?? 0));
+                    $quantity = intval($productData['quantity'] ?? 1);
+                    $newTotalPrice += $quantity * $productPrice;
                 }
             }
-    
+        }
 
-            // ตรวจสอบงบประมาณคงเหลือ
-            $budget = Budget::first();
-        
-            if (!$budget) {
-                return redirect()->back()->with('error', 'ไม่พบงบประมาณในระบบ')->withInput();
+        // ตรวจสอบงบประมาณคงเหลือ
+        $budget = Budget::first();
+
+        if (!$budget) {
+            return redirect()->back()->with('error', 'ไม่พบงบประมาณในระบบ')->withInput();
+        }
+
+        // ดึงยอดรวมผลิตภัณฑ์เดิมที่บันทึกไว้แล้วในฐานข้อมูล
+        $oldTotalPrice = 0;
+        if ($data->products) {
+            foreach ($data->products as $existingProduct) {
+                $oldTotalPrice += $existingProduct->quantity * $existingProduct->product_price;
             }
-            
-            // ตรวจสอบว่างบประมาณเพียงพอหรือไม่
-            if ($budget->remaining_amount < $totalPrice) {
-                return redirect()->back()->with('error', 'งบประมาณไม่เพียงพอ กรุณาปรับราคาใหม่')->withInput();
-            }
+        }
+
+        // คำนวณความแตกต่างของยอดเงินรวมระหว่างยอดใหม่กับยอดเดิม
+        $priceDifference = $newTotalPrice - $oldTotalPrice;
+
+        // ตรวจสอบว่างบประมาณเพียงพอหรือไม่ ถ้าความแตกต่างของยอดเงินเป็นบวก (มีการเพิ่มยอด)
+        if ($priceDifference > 0 && $budget->remaining_amount < $priceDifference) {
+            return redirect()->back()->with('error', 'งบประมาณไม่เพียงพอ กรุณาปรับราคาใหม่')->withInput();
+        }
             
             // หากงบประมาณเพียงพอ ทำการบันทึกข้อมูลและหักจากงบประมาณคงเหลือ
-            $budget->remaining_amount -= $totalPrice;
+            $budget->remaining_amount -= $priceDifference;
             $budget->save();
         
             // บันทึกข้อมูล Info
@@ -516,61 +561,54 @@ History::create([
 
     public function dashboard()
     {
-        // Query to get monthly counts for 'จัดซื้อ' and 'จัดจ้าง' starting from October
+        // Query to get monthly counts for 'จัดซื้อ' และ 'จัดจ้าง'
         $monthlyData = DB::table('info')
             ->select(DB::raw('MONTH(date) as month, 
                                 SUM(CASE WHEN methode_name = "จัดซื้อ" THEN 1 ELSE 0 END) as purchase_count, 
                                 SUM(CASE WHEN methode_name = "จัดจ้าง" THEN 1 ELSE 0 END) as hiring_count'))
-            ->whereYear('date', date('Y') - 1) // Adjust this for fiscal year starting October
-            ->orWhere(function ($query) {
-                $query->whereYear('date', date('Y'))
-                      ->whereMonth('date', '>=', 10); // Select data from October of the previous year
-            })
+            ->whereYear('date', date('Y')) // ดึงข้อมูลปีปัจจุบัน
             ->groupBy(DB::raw('MONTH(date)'))
             ->orderBy('month')
             ->get();
         
-        // Adjust the months to start from October
-        $months = ['ตุลาคม', 'พฤศจิกายน', 'ธันวาคม', 'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน'];
+        // กำหนดชื่อเดือนจากมกราคมถึงธันวาคม
+        $months = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
     
-        // Initialize the data arrays starting from October
+        // สร้างอาร์เรย์ข้อมูลเริ่มจากมกราคมถึงธันวาคม
         $purchaseData = array_fill(0, 12, 0);
         $hiringData = array_fill(0, 12, 0);
     
-        // Map the database result to the correct fiscal year month index
+        // ใส่ข้อมูลในอาร์เรย์ตามเดือนที่ดึงมา
         foreach ($monthlyData as $data) {
-            $monthIndex = ($data->month + 2) % 12; // Shift months to start from October
+            $monthIndex = $data->month - 1; // ใช้เดือนปกติ (เดือน 1 เป็น index 0)
             $purchaseData[$monthIndex] = $data->purchase_count;
             $hiringData[$monthIndex] = $data->hiring_count;
         }
     
-        // Query to get monthly counts for 'วัสดุ' and 'ครุภัณฑ์'
+        // Query to get monthly counts for 'วัสดุ' และ 'ครุภัณฑ์'
         $productMonthlyData = DB::table('product')
             ->select(DB::raw('MONTH(created_at) as month, 
                                 SUM(CASE WHEN product_type = "วัสดุ" THEN quantity ELSE 0 END) as material_count, 
                                 SUM(CASE WHEN product_type = "ครุภัณฑ์" THEN quantity ELSE 0 END) as equipment_count'))
-            ->whereYear('created_at', date('Y') - 1) // Adjust for fiscal year starting October
-            ->orWhere(function ($query) {
-                $query->whereYear('created_at', date('Y'))
-                      ->whereMonth('created_at', '>=', 10); // Select data from October
-            })
+            ->whereYear('created_at', date('Y')) // ดึงข้อมูลปีปัจจุบัน
             ->groupBy(DB::raw('MONTH(created_at)'))
             ->orderBy('month')
             ->get();
     
-        // Initialize the data arrays for products starting from October
+        // สร้างอาร์เรย์ข้อมูลผลิตภัณฑ์จากมกราคมถึงธันวาคม
         $materialData = array_fill(0, 12, 0);
         $equipmentData = array_fill(0, 12, 0);
     
-        // Map the product data to the correct fiscal year month index
+        // ใส่ข้อมูลในอาร์เรย์ตามเดือนที่ดึงมา
         foreach ($productMonthlyData as $data) {
-            $monthIndex = ($data->month + 2) % 12; // Shift months to start from October
+            $monthIndex = $data->month - 1; // ใช้เดือนปกติ (เดือน 1 เป็น index 0)
             $materialData[$monthIndex] = $data->material_count;
             $equipmentData[$monthIndex] = $data->equipment_count;
         }
     
         return view('dashboard', compact('months', 'purchaseData', 'hiringData', 'materialData', 'equipmentData'));
     }
+    
     
 
     
